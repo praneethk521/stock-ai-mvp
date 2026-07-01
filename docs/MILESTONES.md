@@ -15,7 +15,7 @@
 
 ## M3: Database Schema
 - [x] Recommendation model stub
-- [ ] Alembic migration setup
+- [x] Alembic migration setup
 - [ ] Watchlist tables
 - [ ] News article tables
 
@@ -29,7 +29,7 @@
 ## M5: Recommendation Engine v1
 - [x] Rules-based engine
 - [ ] Add technical indicator calculations from candles
-- [ ] Persist recommendations
+- [x] Persist recommendations
 
 ## M6: Frontend MVP
 - [x] Dashboard

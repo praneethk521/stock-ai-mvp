@@ -15,7 +15,7 @@ Returns stocks above market-cap threshold with price movement.
 Returns ticker snapshot and related news.
 
 ## GET `/stocks/{ticker}/recommendation`
-Returns recommendation object:
+Generates, persists, and returns recommendation object:
 - recommendation
 - trade_horizon
 - confidence_score

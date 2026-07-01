@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import DateTime, Float, String, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.db import Base
@@ -16,4 +16,5 @@ class RecommendationRecord(Base):
     explanation: Mapped[str] = mapped_column(String(2000))
     supporting_signals: Mapped[dict] = mapped_column(JSON)
     model_version: Mapped[str] = mapped_column(String(32), default='rules-v1')
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

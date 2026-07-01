@@ -1,6 +1,10 @@
 import re
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from app.core.db import get_db
+from app.repositories.recommendations import create_recommendation_record
 from app.schemas.market import Recommendation
 from app.services.factory import get_market_provider, get_news_provider
 from app.services.recommendation_engine import RecommendationEngine
@@ -43,9 +47,11 @@ async def stock_details(ticker: str) -> dict:
 
 
 @router.get('/stocks/{ticker}/recommendation', response_model=Recommendation)
-async def stock_recommendation(ticker: str) -> Recommendation:
+async def stock_recommendation(ticker: str, db: Session = Depends(get_db)) -> Recommendation:
     symbol = validate_ticker(ticker)
     snapshot = await market_provider.get_ticker_snapshot(symbol)
     news = await news_provider.get_company_news(symbol)
     avg_sentiment = sum(a.sentiment_score for a in news) / len(news) if news else 0.0
-    return engine.generate(ticker=symbol, snapshot=snapshot, sentiment_score=avg_sentiment)
+    recommendation = engine.generate(ticker=symbol, snapshot=snapshot, sentiment_score=avg_sentiment)
+    create_recommendation_record(db, recommendation)
+    return recommendation
