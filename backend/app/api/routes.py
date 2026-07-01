@@ -1,3 +1,5 @@
+import re
+
 from fastapi import APIRouter, HTTPException
 from app.schemas.market import Recommendation
 from app.services.factory import get_market_provider, get_news_provider
@@ -7,6 +9,13 @@ router = APIRouter()
 market_provider = get_market_provider()
 news_provider = get_news_provider()
 engine = RecommendationEngine()
+TICKER_PATTERN = re.compile(r'^[A-Za-z0-9.\-]{1,12}$')
+
+
+def validate_ticker(ticker: str) -> str:
+    if not TICKER_PATTERN.fullmatch(ticker):
+        raise HTTPException(status_code=400, detail='Invalid ticker')
+    return ticker.upper()
 
 
 @router.get('/health')
@@ -27,18 +36,16 @@ async def large_cap_movers(min_market_cap: float = 50_000_000_000) -> dict:
 
 @router.get('/stocks/{ticker}')
 async def stock_details(ticker: str) -> dict:
-    if not ticker.isalnum() or len(ticker) > 12:
-        raise HTTPException(status_code=400, detail='Invalid ticker')
-    snapshot = await market_provider.get_ticker_snapshot(ticker)
-    news = await news_provider.get_company_news(ticker)
+    symbol = validate_ticker(ticker)
+    snapshot = await market_provider.get_ticker_snapshot(symbol)
+    news = await news_provider.get_company_news(symbol)
     return {'snapshot': snapshot, 'news': news}
 
 
 @router.get('/stocks/{ticker}/recommendation', response_model=Recommendation)
 async def stock_recommendation(ticker: str) -> Recommendation:
-    if not ticker.isalnum() or len(ticker) > 12:
-        raise HTTPException(status_code=400, detail='Invalid ticker')
-    snapshot = await market_provider.get_ticker_snapshot(ticker)
-    news = await news_provider.get_company_news(ticker)
+    symbol = validate_ticker(ticker)
+    snapshot = await market_provider.get_ticker_snapshot(symbol)
+    news = await news_provider.get_company_news(symbol)
     avg_sentiment = sum(a.sentiment_score for a in news) / len(news) if news else 0.0
-    return engine.generate(ticker=ticker, snapshot=snapshot, sentiment_score=avg_sentiment)
+    return engine.generate(ticker=symbol, snapshot=snapshot, sentiment_score=avg_sentiment)

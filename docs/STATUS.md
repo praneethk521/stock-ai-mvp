@@ -11,6 +11,7 @@ MVP scaffold created with FastAPI backend, Next.js frontend, Docker Compose, moc
 - Added frontend dashboard, large-cap movers, and stock detail recommendation page
 - Added docs and CI skeleton
 - Verified local Docker Compose demo with frontend, backend, PostgreSQL, and Redis
+- Expanded mock market universe to top-10 mega-cap tickers and ranked movers by absolute daily move
 
 ## Next Codex Task
 Implement Alembic migrations and persist generated recommendations to PostgreSQL.
@@ -25,6 +26,7 @@ After every meaningful change:
 
 ## Known Gaps
 - Data is mocked
+- Top-10 market cap list is an illustrative mock universe and should be replaced by a real market-data provider
 - Auth is not implemented
 - Real provider integrations are not implemented
 - MCP server is documented but not implemented
