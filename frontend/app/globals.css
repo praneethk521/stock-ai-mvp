@@ -5,6 +5,7 @@ button { background: #eef2ff; color: #0b1020; border: 0; border-radius: 8px; pad
 input { box-sizing: border-box; width: 100%; border: 1px solid #38466d; border-radius: 8px; background: #0f1629; color: #eef2ff; padding: 10px 12px; }
 label { display: grid; gap: 6px; }
 .card { background: #151b2f; border: 1px solid #26314f; border-radius: 16px; padding: 18px; }
+.error-card { border-color: #7f3448; background: #211626; }
 .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
 .badge { padding: 4px 8px; border-radius: 999px; background: #24304d; font-size: 12px; }
 nav { display:flex; gap:14px; flex-wrap: wrap; margin: 20px 0; }

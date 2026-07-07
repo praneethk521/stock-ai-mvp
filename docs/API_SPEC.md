@@ -2,6 +2,22 @@
 
 Base path: `/api/v1`
 
+## Error Response
+Non-2xx responses use a shared envelope:
+
+```json
+{
+  "error": {
+    "code": "bad_request",
+    "message": "Invalid ticker",
+    "status_code": 400,
+    "request_id": "..."
+  }
+}
+```
+
+Validation errors include an additional `details` array.
+
 ## GET `/health`
 Returns service health.
 

@@ -11,7 +11,7 @@
 - [x] Market endpoints
 - [x] Stock recommendation endpoint
 - [ ] OpenAPI review
-- [ ] Error handling standardization
+- [x] Error handling standardization
 
 ## M3: Database Schema
 - [x] Recommendation model stub

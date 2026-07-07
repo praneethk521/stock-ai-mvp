@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { apiGet } from '../../lib/api';
+import { ErrorState } from '../../components/ErrorState';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,10 +27,16 @@ type RecommendationHistoryItem = {
 };
 
 export default async function Page() {
-  const [status, recent] = await Promise.all([
-    apiGet<AdminStatus>('/admin/status'),
-    apiGet<RecommendationHistoryItem[]>('/recommendations/recent?limit=5'),
-  ]);
+  let status: AdminStatus;
+  let recent: RecommendationHistoryItem[];
+  try {
+    [status, recent] = await Promise.all([
+      apiGet<AdminStatus>('/admin/status'),
+      apiGet<RecommendationHistoryItem[]>('/recommendations/recent?limit=5'),
+    ]);
+  } catch (error) {
+    return <ErrorState title="Admin status unavailable" error={error} />;
+  }
 
   return (
     <>
@@ -40,7 +47,9 @@ export default async function Page() {
           <p>Market provider: {status.market_data_provider}</p>
           <p>News provider: {status.news_provider}</p>
           <p>Market health: {status.market_provider_health.ok ? 'ok' : 'error'}</p>
+          {status.market_provider_health.error ? <small>{status.market_provider_health.error}</small> : null}
           <p>News health: {status.news_provider_health.ok ? 'ok' : 'error'}</p>
+          {status.news_provider_health.error ? <small>{status.news_provider_health.error}</small> : null}
           <p>Recommendation model: {status.recommendation_model}</p>
         </div>
         <div className="card">

@@ -67,6 +67,10 @@ def test_top_market_movers_rejects_invalid_direction():
     res = client.get('/api/v1/market/top-movers?direction=flat')
 
     assert res.status_code == 400
+    error = res.json()['error']
+    assert error['code'] == 'bad_request'
+    assert error['message'] == 'Direction must be gainers or losers'
+    assert error['request_id']
 
 
 def test_stock_recommendation_accepts_class_share_ticker():
@@ -161,6 +165,27 @@ def test_watchlist_rejects_invalid_ticker():
     res = client.post('/api/v1/watchlist', json={'ticker': 'BAD/TICKER', 'notes': ''})
 
     assert res.status_code == 400
+    assert res.json()['error']['message'] == 'Invalid ticker'
+
+
+def test_missing_watchlist_item_returns_standard_error():
+    reset_db()
+
+    res = client.delete('/api/v1/watchlist/NVDA')
+
+    assert res.status_code == 404
+    assert res.json()['error']['code'] == 'not_found'
+    assert res.json()['error']['message'] == 'Watchlist item not found'
+
+
+def test_validation_error_returns_standard_error():
+    reset_db()
+
+    res = client.get('/api/v1/recommendations/recent?limit=not-a-number')
+
+    assert res.status_code == 422
+    assert res.json()['error']['code'] == 'validation_error'
+    assert res.json()['error']['details']
 
 
 def test_news_sentiment_returns_default_tracked_tickers():

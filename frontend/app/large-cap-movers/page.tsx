@@ -1,12 +1,18 @@
 import Link from 'next/link';
 import { apiGet } from '../../lib/api';
+import { ErrorState } from '../../components/ErrorState';
 
 export const dynamic = 'force-dynamic';
 
 type Mover = { ticker: string; company_name: string; price: number; change_percent: number; volume: number; market_cap: number };
 
 export default async function LargeCapMovers() {
-  const data = await apiGet<{ items: Mover[] }>('/market/large-cap-movers?min_market_cap=50000000000');
+  let data: { items: Mover[] };
+  try {
+    data = await apiGet<{ items: Mover[] }>('/market/large-cap-movers?min_market_cap=50000000000');
+  } catch (error) {
+    return <ErrorState title="Large-cap movers unavailable" error={error} />;
+  }
   return (
     <>
       <section className="card">

@@ -66,6 +66,7 @@ Open http://localhost:3000.
 - Top market movers API and UI
 - Historical candle API
 - Polygon provider adapter with health, Redis-backed caching, retry, request logging, top movers, aggregate candles, and custom indicator calculations
+- Standardized API error responses and frontend provider failure states
 - Codex-friendly docs/status
 
 ## Next implementation steps

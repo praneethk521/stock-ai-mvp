@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { apiGet } from '../../lib/api';
+import { ErrorState } from '../../components/ErrorState';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +18,13 @@ async function getMovers(direction: 'gainers' | 'losers') {
 }
 
 export default async function TopMovers() {
-  const [gainers, losers] = await Promise.all([getMovers('gainers'), getMovers('losers')]);
+  let gainers: { direction: string; items: Mover[] };
+  let losers: { direction: string; items: Mover[] };
+  try {
+    [gainers, losers] = await Promise.all([getMovers('gainers'), getMovers('losers')]);
+  } catch (error) {
+    return <ErrorState title="Top market movers unavailable" error={error} />;
+  }
 
   return (
     <>

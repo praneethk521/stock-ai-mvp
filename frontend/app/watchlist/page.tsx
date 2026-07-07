@@ -1,6 +1,7 @@
 import { revalidatePath } from 'next/cache';
 import Link from 'next/link';
 import { apiGet, apiSend } from '../../lib/api';
+import { ErrorState } from '../../components/ErrorState';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +35,12 @@ async function removeFromWatchlist(formData: FormData) {
 }
 
 export default async function Page() {
-  const items = await apiGet<WatchlistItem[]>('/watchlist');
+  let items: WatchlistItem[];
+  try {
+    items = await apiGet<WatchlistItem[]>('/watchlist');
+  } catch (error) {
+    return <ErrorState title="Watchlist unavailable" error={error} />;
+  }
 
   return (
     <>

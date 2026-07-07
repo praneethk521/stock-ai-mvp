@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { apiGet } from '../../lib/api';
+import { ErrorState } from '../../components/ErrorState';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +27,12 @@ function sentimentLabel(score: number) {
 }
 
 export default async function Page() {
-  const items = await apiGet<NewsSentimentItem[]>('/news/sentiment');
+  let items: NewsSentimentItem[];
+  try {
+    items = await apiGet<NewsSentimentItem[]>('/news/sentiment');
+  } catch (error) {
+    return <ErrorState title="News sentiment unavailable" error={error} />;
+  }
 
   return (
     <>

@@ -20,9 +20,10 @@ MVP scaffold created with FastAPI backend, Next.js frontend, Docker Compose, moc
 - Added Polygon provider health checks, TTL caching, retry/backoff, and RSI/MACD/SMA indicator enrichment
 - Added top market movers API/UI, Polygon top movers integration, Redis-backed provider caching, and structured Polygon request logging
 - Added historical candle API/provider contract and Polygon aggregate-candle indicator calculations
+- Added standardized API error envelope, request IDs, and frontend provider failure states
 
 ## Next Codex Task
-Standardize API error responses and provider failure states in the frontend.
+Add OpenAPI response review and document standardized error responses.
 
 ## Working Rules for Codex
 After every meaningful change:
@@ -36,6 +37,6 @@ After every meaningful change:
 - Local Docker demo still defaults to mock providers until `POLYGON_API_KEY` is configured
 - Watchlist is global/unauthenticated until auth is implemented
 - Auth is not implemented
-- Polygon plan limits may affect some endpoints; provider errors surface through backend status/API responses
+- Polygon plan limits may affect some endpoints; frontend now surfaces provider/API failures with request IDs
 - MCP server is documented but not implemented
 - Frontend placeholders remain for deeper admin/provider workflows

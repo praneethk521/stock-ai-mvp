@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { apiGet } from '../../lib/api';
+import { ErrorState } from '../../components/ErrorState';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +17,12 @@ type RecommendationHistoryItem = {
 };
 
 export default async function Page() {
-  const recent = await apiGet<RecommendationHistoryItem[]>('/recommendations/recent?limit=20');
+  let recent: RecommendationHistoryItem[];
+  try {
+    recent = await apiGet<RecommendationHistoryItem[]>('/recommendations/recent?limit=20');
+  } catch (error) {
+    return <ErrorState title="Recommendation history unavailable" error={error} />;
+  }
 
   return (
     <>
