@@ -22,7 +22,7 @@
 ## M4: Provider Abstractions
 - [x] Market provider interface
 - [x] News provider interface
-- [ ] Polygon provider
+- [x] Polygon provider
 - [ ] Finnhub provider
 - [ ] Alpha Vantage provider
 

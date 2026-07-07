@@ -1,13 +1,13 @@
 # Data Sources
 
-## Recommended Provider Priority
-1. Polygon or Finnhub for production-grade price/fundamental/news integrations
-2. Alpha Vantage for market data, technical indicators, and news sentiment
-3. Tiingo/IEX-style providers as additional adapters
+## Production Provider Priority
+1. Polygon as the primary production provider for market data, snapshots, indicators, and ticker news
+2. Secondary provider later for redundancy and provider-diff checks
+3. Alpha Vantage/Finnhub only as fallback or enrichment adapters
 4. Yahoo Finance-compatible libraries only for local/dev experimentation, not primary production dependency
 
 ## Notes
-- Polygon provides real-time and historical stock market data APIs.
+- Polygon provides stock snapshots, top market movers, technical indicators, aggregates, reference data, and ticker news with sentiment insights.
 - Finnhub lists real-time market data, company fundamentals, company news, and sentiment-related APIs.
 - Alpha Vantage provides market data APIs and a news/sentiment endpoint; it also advertises an official MCP server.
 
@@ -19,6 +19,17 @@ Every provider should implement:
 - company news
 - market movers, if supported
 - rate-limit metadata
+
+## Polygon Integration Status
+- [x] Configurable Polygon client
+- [x] Polygon market snapshot adapter for tracked mega-cap tickers
+- [x] Polygon ticker reference lookup for market cap
+- [x] Polygon news adapter using `/v2/reference/news`
+- [ ] Polygon top market movers endpoint integration
+- [ ] Polygon aggregates/candles for technical indicators
+- [ ] Rate-limit/backoff policy
+- [ ] Response caching
+- [ ] Provider health checks
 
 ## Compliance
 Use licensed APIs where possible. Scraping should be opt-in, compliant with site terms, and respectful of robots.txt.

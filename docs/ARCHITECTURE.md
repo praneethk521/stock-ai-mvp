@@ -1,7 +1,7 @@
 # Architecture
 
-## MVP Architecture
-Next.js frontend calls FastAPI backend. FastAPI uses provider interfaces for market data and news. The recommendation engine combines snapshot signals and sentiment into a rules-based recommendation.
+## Current Architecture
+Next.js frontend calls FastAPI backend. FastAPI uses provider interfaces for market data and news, with mock and Polygon adapters behind configuration. The recommendation engine combines snapshot signals and sentiment into a rules-based recommendation.
 
 ## Backend Layers
 - API routes: request/response boundaries
@@ -12,9 +12,15 @@ Next.js frontend calls FastAPI backend. FastAPI uses provider interfaces for mar
 - Agents: future MCP/agentic tool wrappers
 
 ## Data Source Strategy
-Use provider interfaces to avoid locking into one API. Start with mock data, then implement Polygon/Finnhub/Alpha Vantage adapters.
+Use provider interfaces to isolate external APIs from application logic. Mock providers remain available for local development and CI. Polygon is the primary production provider path for market snapshots, reference data, technical indicators, and ticker news. See `DATA_SOURCES.md`.
 
-Polygon provides real-time and historical market data APIs. Finnhub offers real-time market data, company fundamentals, news, and sentiment-related datasets. Alpha Vantage offers stock APIs and a market news/sentiment endpoint, and also advertises an MCP server for agentic workflows. See `DATA_SOURCES.md`.
+## Production Hardening Direction
+- Validate provider configuration at startup
+- Cache provider responses to reduce cost and rate-limit pressure
+- Add retry/backoff behavior for transient upstream failures
+- Add structured logs with provider request IDs
+- Add provider health checks surfaced in Admin
+- Add auth before user-specific watchlists or saved preferences
 
 ## Deployment Direction
 - Local: Docker Compose

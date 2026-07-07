@@ -1,6 +1,6 @@
 # Stock AI MVP
 
-Production-minded MVP for stock market insights, large-cap movers, news sentiment, and rules-based recommendations.
+Production-minded stock market insights application for market movers, news sentiment, watchlists, and rules-based recommendations.
 
 > Disclaimer: This app is informational only and is not financial advice.
 
@@ -11,6 +11,17 @@ Production-minded MVP for stock market insights, large-cap movers, news sentimen
 - Cache: Redis
 - Local runtime: Docker Compose
 - Agent-ready layer: provider interfaces + agent/tool stubs
+
+## Provider mode
+The local demo defaults to mock providers. To use Polygon-backed market/news data, set:
+
+```bash
+MARKET_DATA_PROVIDER=polygon
+NEWS_PROVIDER=polygon
+POLYGON_API_KEY=your_polygon_key
+```
+
+Keep API keys in local `.env` files or a secret manager. Do not commit real keys.
 
 ## Run locally
 ```bash
@@ -42,13 +53,14 @@ pnpm run dev
 
 Open http://localhost:3000.
 
-## MVP scope
+## Current scope
 - Mock market overview
 - Mock large-cap movers with configurable minimum market cap
 - Mock ticker news
 - Initial recommendation engine
 - Persisted recommendation records
 - Persisted watchlist
+- Polygon provider adapter foundation
 - Codex-friendly docs/status
 
 ## Next implementation steps

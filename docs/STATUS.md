@@ -16,9 +16,10 @@ MVP scaffold created with FastAPI backend, Next.js frontend, Docker Compose, moc
 - Added recommendation history API plus Admin and Recommendations UI
 - Added watchlist persistence, API endpoints, and Watchlist UI
 - Added News Sentiment UI v1 backed by mock provider sentiment summaries
+- Added Polygon provider adapter foundation for market snapshots, ticker reference data, and ticker news
 
 ## Next Codex Task
-Implement the first real market/news data provider adapter behind the existing provider interfaces.
+Add provider health checks, response caching, and Polygon aggregates/technical indicators.
 
 ## Working Rules for Codex
 After every meaningful change:
@@ -29,8 +30,8 @@ After every meaningful change:
 5. Keep MVP scope tight
 
 ## Known Gaps
-- Data is mocked
-- Top-10 market cap list is an illustrative mock universe and should be replaced by a real market-data provider
+- Local Docker demo still defaults to mock providers until `POLYGON_API_KEY` is configured
+- Polygon top market movers and aggregates are not wired yet
 - Watchlist is global/unauthenticated until auth is implemented
 - Auth is not implemented
 - Real provider integrations are not implemented

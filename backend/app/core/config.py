@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     cors_origins: str = 'http://localhost:3000'
     market_data_provider: str = 'mock'
     news_provider: str = 'mock'
+    polygon_base_url: str = 'https://api.polygon.io'
+    provider_timeout_seconds: float = 10.0
     openai_api_key: str | None = None
     polygon_api_key: str | None = None
     finnhub_api_key: str | None = None
