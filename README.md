@@ -67,6 +67,7 @@ Open http://localhost:3000.
 - Historical candle API
 - Polygon provider adapter with health, Redis-backed caching, retry, request logging, top movers, aggregate candles, and custom indicator calculations
 - Standardized API error responses and frontend provider failure states
+- OpenAPI error response schemas for client integration
 - Codex-friendly docs/status
 
 ## Next implementation steps

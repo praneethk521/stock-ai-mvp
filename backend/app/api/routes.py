@@ -7,11 +7,18 @@ from app.core.db import get_db
 from app.core.config import get_settings
 from app.repositories.recommendations import count_recommendations, create_recommendation_record, list_recent_recommendations
 from app.repositories.watchlist import delete_watchlist_item, list_watchlist_items, upsert_watchlist_item
-from app.schemas.market import NewsArticle, NewsSentimentItem, Recommendation, RecommendationHistoryItem, StockCandle, WatchlistItemCreate, WatchlistItemRead
+from app.schemas.market import ApiErrorResponse, NewsArticle, NewsSentimentItem, Recommendation, RecommendationHistoryItem, StockCandle, WatchlistItemCreate, WatchlistItemRead
 from app.services.factory import get_market_provider, get_news_provider
 from app.services.recommendation_engine import RecommendationEngine
 
-router = APIRouter()
+COMMON_ERROR_RESPONSES = {
+    400: {'description': 'Bad request', 'model': ApiErrorResponse},
+    404: {'description': 'Resource not found', 'model': ApiErrorResponse},
+    422: {'description': 'Request validation failed', 'model': ApiErrorResponse},
+    429: {'description': 'Rate limit exceeded', 'model': ApiErrorResponse},
+    500: {'description': 'Unexpected server error', 'model': ApiErrorResponse},
+}
+router = APIRouter(responses=COMMON_ERROR_RESPONSES)
 settings = get_settings()
 market_provider = get_market_provider()
 news_provider = get_news_provider()
@@ -19,6 +26,12 @@ engine = RecommendationEngine()
 TICKER_PATTERN = re.compile(r'^[A-Za-z0-9.\-]{1,12}$')
 DEFAULT_SENTIMENT_TICKERS = ['NVDA', 'TSLA', 'AAPL', 'MSFT', 'AMZN', 'META', 'AVGO', 'TSM', 'GOOG', 'BRK.B']
 TOP_MOVER_DIRECTIONS = {'gainers', 'losers'}
+PROVIDER_ERROR_RESPONSES = {
+    502: {
+        'description': 'Upstream market/news provider failure',
+        'model': ApiErrorResponse,
+    }
+}
 
 
 def validate_ticker(ticker: str) -> str:
@@ -57,18 +70,18 @@ async def health() -> dict:
     return {'status': 'ok'}
 
 
-@router.get('/market/overview')
+@router.get('/market/overview', responses=PROVIDER_ERROR_RESPONSES)
 async def market_overview() -> dict:
     return await market_provider.get_market_overview()
 
 
-@router.get('/market/large-cap-movers')
+@router.get('/market/large-cap-movers', responses=PROVIDER_ERROR_RESPONSES)
 async def large_cap_movers(min_market_cap: float = 50_000_000_000) -> dict:
     movers = await market_provider.get_large_cap_movers(min_market_cap=min_market_cap)
     return {'min_market_cap': min_market_cap, 'items': movers}
 
 
-@router.get('/market/top-movers')
+@router.get('/market/top-movers', responses=PROVIDER_ERROR_RESPONSES)
 async def top_market_movers(direction: str = 'gainers', limit: int = 10) -> dict:
     normalized_direction = validate_top_mover_direction(direction)
     bounded_limit = min(max(limit, 1), 50)
@@ -79,7 +92,7 @@ async def top_market_movers(direction: str = 'gainers', limit: int = 10) -> dict
     return {'direction': normalized_direction, 'limit': bounded_limit, 'items': movers}
 
 
-@router.get('/news/sentiment', response_model=list[NewsSentimentItem])
+@router.get('/news/sentiment', response_model=list[NewsSentimentItem], responses=PROVIDER_ERROR_RESPONSES)
 async def news_sentiment(tickers: str | None = None) -> list[NewsSentimentItem]:
     symbols = [validate_ticker(item.strip()) for item in tickers.split(',') if item.strip()] if tickers else DEFAULT_SENTIMENT_TICKERS
     unique_symbols = list(dict.fromkeys(symbols))[:20]
@@ -144,7 +157,7 @@ async def remove_watchlist_item(ticker: str, db: Session = Depends(get_db)) -> d
     return {'deleted': True, 'ticker': symbol}
 
 
-@router.get('/stocks/{ticker}')
+@router.get('/stocks/{ticker}', responses=PROVIDER_ERROR_RESPONSES)
 async def stock_details(ticker: str) -> dict:
     symbol = validate_ticker(ticker)
     snapshot = await market_provider.get_ticker_snapshot(symbol)
@@ -152,14 +165,14 @@ async def stock_details(ticker: str) -> dict:
     return {'snapshot': snapshot, 'news': news}
 
 
-@router.get('/stocks/{ticker}/candles', response_model=list[StockCandle])
+@router.get('/stocks/{ticker}/candles', response_model=list[StockCandle], responses=PROVIDER_ERROR_RESPONSES)
 async def stock_candles(ticker: str, days: int = 90) -> list[StockCandle]:
     symbol = validate_ticker(ticker)
     bounded_days = min(max(days, 20), 365)
     return await market_provider.get_historical_candles(symbol, days=bounded_days)
 
 
-@router.get('/stocks/{ticker}/recommendation', response_model=Recommendation)
+@router.get('/stocks/{ticker}/recommendation', response_model=Recommendation, responses=PROVIDER_ERROR_RESPONSES)
 async def stock_recommendation(ticker: str, db: Session = Depends(get_db)) -> Recommendation:
     symbol = validate_ticker(ticker)
     snapshot = await market_provider.get_ticker_snapshot(symbol)

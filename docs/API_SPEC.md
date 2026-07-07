@@ -18,6 +18,14 @@ Non-2xx responses use a shared envelope:
 
 Validation errors include an additional `details` array.
 
+FastAPI OpenAPI docs expose this as `ApiErrorResponse` / `ApiErrorBody` and attach common error responses to each route:
+- `400` bad request
+- `404` resource not found
+- `422` validation error
+- `429` rate limited
+- `500` internal error
+- `502` provider error on market/news/provider-backed routes
+
 ## GET `/health`
 Returns service health.
 

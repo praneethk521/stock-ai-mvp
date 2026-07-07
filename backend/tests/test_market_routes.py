@@ -188,6 +188,23 @@ def test_validation_error_returns_standard_error():
     assert res.json()['error']['details']
 
 
+def test_openapi_documents_standard_error_schema():
+    res = client.get('/openapi.json')
+
+    assert res.status_code == 200
+    spec = res.json()
+    schemas = spec['components']['schemas']
+    assert 'ApiErrorResponse' in schemas
+    assert 'ApiErrorBody' in schemas
+    top_movers_responses = spec['paths']['/api/v1/market/top-movers']['get']['responses']
+    assert '400' in top_movers_responses
+    assert '422' in top_movers_responses
+    assert '429' in top_movers_responses
+    assert '500' in top_movers_responses
+    assert '502' in top_movers_responses
+    assert top_movers_responses['502']['content']['application/json']['schema']['$ref'].endswith('/ApiErrorResponse')
+
+
 def test_news_sentiment_returns_default_tracked_tickers():
     reset_db()
 

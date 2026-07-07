@@ -1,4 +1,6 @@
 from datetime import datetime
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -21,6 +23,18 @@ class StockCandle(BaseModel):
     volume: int
     vwap: float | None = None
     transactions: int | None = None
+
+
+class ApiErrorBody(BaseModel):
+    code: str
+    message: str
+    status_code: int
+    request_id: str | None = None
+    details: Any | None = None
+
+
+class ApiErrorResponse(BaseModel):
+    error: ApiErrorBody
 
 
 class NewsArticle(BaseModel):

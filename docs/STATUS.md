@@ -21,9 +21,10 @@ MVP scaffold created with FastAPI backend, Next.js frontend, Docker Compose, moc
 - Added top market movers API/UI, Polygon top movers integration, Redis-backed provider caching, and structured Polygon request logging
 - Added historical candle API/provider contract and Polygon aggregate-candle indicator calculations
 - Added standardized API error envelope, request IDs, and frontend provider failure states
+- Added OpenAPI error response schemas and provider-route response metadata
 
 ## Next Codex Task
-Add OpenAPI response review and document standardized error responses.
+Add initial CI workflow for backend tests/lint and frontend lint/build.
 
 ## Working Rules for Codex
 After every meaningful change:

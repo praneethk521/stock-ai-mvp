@@ -10,7 +10,7 @@
 - [x] Health endpoint
 - [x] Market endpoints
 - [x] Stock recommendation endpoint
-- [ ] OpenAPI review
+- [x] OpenAPI review
 - [x] Error handling standardization
 
 ## M3: Database Schema
