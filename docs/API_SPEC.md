@@ -11,6 +11,9 @@ Returns major index summary.
 ## GET `/market/large-cap-movers?min_market_cap=50000000000`
 Returns stocks above market-cap threshold with price movement.
 
+## GET `/market/top-movers?direction=gainers&limit=10`
+Returns all-market top gainers or losers from the active provider. `direction` must be `gainers` or `losers`; `limit` is capped at 50.
+
 ## GET `/news/sentiment?tickers=NVDA,MSFT`
 Returns average sentiment and mock news articles by ticker. `tickers` is optional; when omitted, the tracked mega-cap universe is used.
 

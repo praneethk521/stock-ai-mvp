@@ -29,10 +29,10 @@ Every provider should implement:
 - [x] In-process provider response caching
 - [x] Retry/backoff for transient Polygon errors
 - [x] Polygon RSI, MACD, and SMA indicator enrichment
-- [ ] Polygon top market movers endpoint integration
+- [x] Polygon top market movers endpoint integration
+- [x] Redis-backed provider cache
+- [x] Structured provider request logging
 - [ ] Polygon aggregates/candles for custom technical calculations
-- [ ] Redis-backed provider cache
-- [ ] Structured provider request logging
 
 ## Compliance
 Use licensed APIs where possible. Scraping should be opt-in, compliant with site terms, and respectful of robots.txt.

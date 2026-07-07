@@ -3,6 +3,7 @@ import Link from 'next/link';
 const links = [
   ['Dashboard', '/dashboard'],
   ['Large-Cap Movers', '/large-cap-movers'],
+  ['Top Movers', '/top-movers'],
   ['News Sentiment', '/news-sentiment'],
   ['Recommendations', '/recommendations'],
   ['Watchlist', '/watchlist'],

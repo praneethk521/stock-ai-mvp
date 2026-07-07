@@ -3,10 +3,14 @@ from time import sleep
 from typing import Any
 
 import httpx
+import structlog
 
 from app.providers.market_data import MEGA_CAP_UNIVERSE, MarketDataProvider
 from app.providers.news import NewsProvider
 from app.schemas.market import MarketMover, NewsArticle
+
+
+logger = structlog.get_logger(__name__)
 
 
 class PolygonProviderError(RuntimeError):
@@ -22,6 +26,7 @@ class PolygonClient:
         cache_ttl_seconds: int = 30,
         retry_count: int = 2,
         http_client: httpx.Client | None = None,
+        cache_backend: Any | None = None,
     ) -> None:
         self.api_key = api_key
         self.base_url = base_url.rstrip('/')
@@ -29,13 +34,23 @@ class PolygonClient:
         self.cache_ttl_seconds = cache_ttl_seconds
         self.retry_count = retry_count
         self.http_client = http_client or httpx.Client(timeout=timeout)
+        self.cache_backend = cache_backend
         self._cache: dict[tuple[str, tuple[tuple[str, str], ...]], tuple[datetime, dict[str, Any]]] = {}
 
     def get(self, path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         query = {'apiKey': self.api_key, **(params or {})}
         cache_key = self._cache_key(path, query)
+        cache_label = self._cache_label(path, query)
+        started_at = datetime.now(timezone.utc)
+
+        backend_cached = self.cache_backend.get(cache_label) if self.cache_backend and self.cache_ttl_seconds > 0 else None
+        if backend_cached:
+            self._log_request(path, 'cache', 200, started_at, cache_hit=True, cache_backend='redis')
+            return backend_cached
+
         cached = self._cache.get(cache_key)
         if cached and cached[0] > datetime.now(timezone.utc):
+            self._log_request(path, 'cache', 200, started_at, cache_hit=True, cache_backend='memory')
             return cached[1]
 
         last_error: httpx.HTTPError | None = None
@@ -43,16 +58,21 @@ class PolygonClient:
             try:
                 res = self.http_client.get(f'{self.base_url}{path}', params=query)
                 if res.status_code in {429, 500, 502, 503, 504} and attempt < self.retry_count:
+                    self._log_request(path, 'retry', res.status_code, started_at, attempt=attempt + 1)
                     sleep(0.2 * (attempt + 1))
                     continue
                 res.raise_for_status()
                 data = res.json()
+                self._log_request(path, 'network', res.status_code, started_at, cache_hit=False, attempt=attempt + 1)
                 break
             except httpx.HTTPError as exc:
                 last_error = exc
                 if attempt < self.retry_count:
+                    status_code = exc.response.status_code if isinstance(exc, httpx.HTTPStatusError) else None
+                    self._log_request(path, 'retry', status_code, started_at, attempt=attempt + 1, error=str(exc))
                     sleep(0.2 * (attempt + 1))
                     continue
+                self._log_request(path, 'failed', None, started_at, attempt=attempt + 1, error=str(exc))
                 raise PolygonProviderError(f'Polygon request failed for {path}') from exc
         else:
             raise PolygonProviderError(f'Polygon request failed for {path}') from last_error
@@ -64,6 +84,8 @@ class PolygonClient:
         if self.cache_ttl_seconds > 0:
             expires_at = datetime.now(timezone.utc) + timedelta(seconds=self.cache_ttl_seconds)
             self._cache[cache_key] = (expires_at, data)
+            if self.cache_backend:
+                self.cache_backend.set(cache_label, data, self.cache_ttl_seconds)
         return data
 
     def health_check(self) -> dict[str, Any]:
@@ -78,6 +100,28 @@ class PolygonClient:
     def _cache_key(self, path: str, query: dict[str, Any]) -> tuple[str, tuple[tuple[str, str], ...]]:
         normalized = tuple(sorted((key, str(value)) for key, value in query.items()))
         return path, normalized
+
+    def _cache_label(self, path: str, query: dict[str, Any]) -> str:
+        normalized = tuple(sorted((key, str(value)) for key, value in query.items()))
+        return f'{path}:{normalized}'
+
+    def _log_request(
+        self,
+        path: str,
+        source: str,
+        status_code: int | None,
+        started_at: datetime,
+        **extra: Any,
+    ) -> None:
+        duration_ms = round((datetime.now(timezone.utc) - started_at).total_seconds() * 1000, 2)
+        logger.info(
+            'polygon_request',
+            path=path,
+            source=source,
+            status_code=status_code,
+            duration_ms=duration_ms,
+            **extra,
+        )
 
 
 def _as_float(value: Any, default: float = 0.0) -> float:
@@ -126,6 +170,18 @@ class PolygonMarketDataProvider(MarketDataProvider):
                 )
         return sorted(movers, key=lambda item: abs(item.change_percent), reverse=True)
 
+    async def get_top_market_movers(self, direction: str = 'gainers', limit: int = 10) -> list[MarketMover]:
+        data = self.client.get(f'/v2/snapshot/locale/us/markets/stocks/{direction}', params={'include_otc': 'false'})
+        results = data.get('tickers') or data.get('results') or []
+        movers: list[MarketMover] = []
+        for result in results[:limit]:
+            symbol = str(result.get('ticker') or '').upper()
+            if not symbol:
+                continue
+            company_name, market_cap = self._get_company_reference(symbol)
+            movers.append(self._map_snapshot_mover(result, company_name=company_name, market_cap=market_cap))
+        return movers
+
     async def get_ticker_snapshot(self, ticker: str) -> dict:
         snapshot = self._get_ticker_snapshot_sync(ticker)
         snapshot['market_cap'] = self._get_market_cap(ticker, default=snapshot['market_cap'])
@@ -170,6 +226,33 @@ class PolygonMarketDataProvider(MarketDataProvider):
             return default
         results = data.get('results') or {}
         return _as_float(results.get('market_cap'), default)
+
+    def _get_company_reference(self, ticker: str) -> tuple[str, float]:
+        try:
+            data = self.client.get(f'/v3/reference/tickers/{ticker.upper()}')
+        except PolygonProviderError:
+            return ticker.upper(), 0.0
+        results = data.get('results') or {}
+        return str(results.get('name') or ticker.upper()), _as_float(results.get('market_cap'))
+
+    def _map_snapshot_mover(self, result: dict[str, Any], company_name: str, market_cap: float) -> MarketMover:
+        day = result.get('day') or {}
+        previous_day = result.get('prevDay') or {}
+        last_trade = result.get('lastTrade') or {}
+        price = _as_float(day.get('c') or last_trade.get('p') or previous_day.get('c'))
+        change_percent = _as_float(result.get('todaysChangePerc'))
+        if change_percent == 0.0:
+            previous_close = _as_float(previous_day.get('c'))
+            if previous_close:
+                change_percent = ((price - previous_close) / previous_close) * 100
+        return MarketMover(
+            ticker=str(result.get('ticker') or '').upper(),
+            company_name=company_name,
+            price=price,
+            change_percent=round(change_percent, 3),
+            volume=_as_int(day.get('v')),
+            market_cap=market_cap,
+        )
 
     def _get_technical_indicators(self, ticker: str, price: float) -> dict[str, Any]:
         symbol = ticker.upper()

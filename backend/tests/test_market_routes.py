@@ -45,6 +45,30 @@ def test_large_cap_movers_returns_top_ten_sorted_by_absolute_move():
     assert abs(items[0]['change_percent']) >= abs(items[-1]['change_percent'])
 
 
+def test_top_market_movers_returns_gainers_and_losers():
+    reset_db()
+
+    gainers_res = client.get('/api/v1/market/top-movers?direction=gainers&limit=3')
+    losers_res = client.get('/api/v1/market/top-movers?direction=losers&limit=3')
+
+    assert gainers_res.status_code == 200
+    assert losers_res.status_code == 200
+    gainers = gainers_res.json()['items']
+    losers = losers_res.json()['items']
+    assert len(gainers) == 3
+    assert len(losers) == 3
+    assert gainers[0]['change_percent'] >= gainers[-1]['change_percent']
+    assert losers[0]['change_percent'] <= losers[-1]['change_percent']
+
+
+def test_top_market_movers_rejects_invalid_direction():
+    reset_db()
+
+    res = client.get('/api/v1/market/top-movers?direction=flat')
+
+    assert res.status_code == 400
+
+
 def test_stock_recommendation_accepts_class_share_ticker():
     reset_db()
     res = client.get('/api/v1/stocks/BRK.B/recommendation')

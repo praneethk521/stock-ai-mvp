@@ -6,6 +6,17 @@ import pytest
 from app.providers.polygon import PolygonClient, PolygonMarketDataProvider, PolygonNewsProvider, PolygonProviderError
 
 
+class FakeCache:
+    def __init__(self) -> None:
+        self.values: dict[str, dict] = {}
+
+    def get(self, key: str) -> dict | None:
+        return self.values.get(key)
+
+    def set(self, key: str, value: dict, ttl_seconds: int) -> None:
+        self.values[key] = value
+
+
 def make_client(payloads: dict[str, dict]) -> PolygonClient:
     def handler(request: httpx.Request) -> httpx.Response:
         payload = payloads.get(request.url.path)
@@ -143,6 +154,38 @@ def test_polygon_client_caches_get_responses():
     assert calls['count'] == 1
 
 
+def test_polygon_client_uses_external_cache_backend():
+    calls = {'count': 0}
+    cache = FakeCache()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls['count'] += 1
+        return httpx.Response(200, json={'status': 'OK', 'count': calls['count']})
+
+    first_client = PolygonClient(
+        api_key='secret-key',
+        base_url='https://api.polygon.test',
+        cache_ttl_seconds=30,
+        retry_count=0,
+        cache_backend=cache,
+        http_client=httpx.Client(transport=httpx.MockTransport(handler)),
+    )
+    second_client = PolygonClient(
+        api_key='secret-key',
+        base_url='https://api.polygon.test',
+        cache_ttl_seconds=30,
+        retry_count=0,
+        cache_backend=cache,
+        http_client=httpx.Client(transport=httpx.MockTransport(handler)),
+    )
+
+    first = first_client.get('/v1/marketstatus/now')
+    second = second_client.get('/v1/marketstatus/now')
+
+    assert first == second
+    assert calls['count'] == 1
+
+
 def test_polygon_client_retries_transient_errors():
     calls = {'count': 0}
 
@@ -182,3 +225,36 @@ def test_polygon_client_health_check_maps_market_status():
         'market': 'open',
         'server_time': '2026-07-07T13:30:00Z',
     }
+
+
+@pytest.mark.asyncio
+async def test_polygon_market_provider_maps_top_market_movers():
+    client = make_client(
+        {
+            '/v2/snapshot/locale/us/markets/stocks/gainers': {
+                'status': 'OK',
+                'tickers': [
+                    {
+                        'ticker': 'XYZ',
+                        'day': {'c': 15.5, 'v': 900000},
+                        'prevDay': {'c': 10.0},
+                        'todaysChangePerc': 55.0,
+                    }
+                ],
+            },
+            '/v3/reference/tickers/XYZ': {
+                'status': 'OK',
+                'results': {'name': 'XYZ Robotics Inc', 'market_cap': 7_500_000_000},
+            },
+        }
+    )
+    provider = PolygonMarketDataProvider(client)
+
+    movers = await provider.get_top_market_movers(direction='gainers', limit=10)
+
+    assert len(movers) == 1
+    assert movers[0].ticker == 'XYZ'
+    assert movers[0].company_name == 'XYZ Robotics Inc'
+    assert movers[0].price == 15.5
+    assert movers[0].change_percent == 55.0
+    assert movers[0].market_cap == 7_500_000_000

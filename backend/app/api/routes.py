@@ -18,6 +18,7 @@ news_provider = get_news_provider()
 engine = RecommendationEngine()
 TICKER_PATTERN = re.compile(r'^[A-Za-z0-9.\-]{1,12}$')
 DEFAULT_SENTIMENT_TICKERS = ['NVDA', 'TSLA', 'AAPL', 'MSFT', 'AMZN', 'META', 'AVGO', 'TSM', 'GOOG', 'BRK.B']
+TOP_MOVER_DIRECTIONS = {'gainers', 'losers'}
 
 
 def validate_ticker(ticker: str) -> str:
@@ -32,6 +33,13 @@ def classify_sentiment(score: float) -> str:
     if score <= -0.25:
         return 'negative'
     return 'neutral'
+
+
+def validate_top_mover_direction(direction: str) -> str:
+    normalized = direction.lower()
+    if normalized not in TOP_MOVER_DIRECTIONS:
+        raise HTTPException(status_code=400, detail='Direction must be gainers or losers')
+    return normalized
 
 
 def provider_health(provider: object, name: str) -> dict:
@@ -58,6 +66,17 @@ async def market_overview() -> dict:
 async def large_cap_movers(min_market_cap: float = 50_000_000_000) -> dict:
     movers = await market_provider.get_large_cap_movers(min_market_cap=min_market_cap)
     return {'min_market_cap': min_market_cap, 'items': movers}
+
+
+@router.get('/market/top-movers')
+async def top_market_movers(direction: str = 'gainers', limit: int = 10) -> dict:
+    normalized_direction = validate_top_mover_direction(direction)
+    bounded_limit = min(max(limit, 1), 50)
+    try:
+        movers = await market_provider.get_top_market_movers(direction=normalized_direction, limit=bounded_limit)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f'Market mover provider failed: {exc}') from exc
+    return {'direction': normalized_direction, 'limit': bounded_limit, 'items': movers}
 
 
 @router.get('/news/sentiment', response_model=list[NewsSentimentItem])

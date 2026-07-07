@@ -63,7 +63,8 @@ Open http://localhost:3000.
 - Initial recommendation engine
 - Persisted recommendation records
 - Persisted watchlist
-- Polygon provider adapter foundation with health, caching, retry, and indicator enrichment
+- Top market movers API and UI
+- Polygon provider adapter with health, Redis-backed caching, retry, request logging, top movers, and indicator enrichment
 - Codex-friendly docs/status
 
 ## Next implementation steps

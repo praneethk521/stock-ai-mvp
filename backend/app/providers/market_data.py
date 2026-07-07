@@ -10,6 +10,9 @@ class MarketDataProvider(ABC):
     async def get_large_cap_movers(self, min_market_cap: float = 50_000_000_000) -> list[MarketMover]: ...
 
     @abstractmethod
+    async def get_top_market_movers(self, direction: str = 'gainers', limit: int = 10) -> list[MarketMover]: ...
+
+    @abstractmethod
     async def get_ticker_snapshot(self, ticker: str) -> dict: ...
 
 
@@ -42,6 +45,10 @@ class MockMarketDataProvider(MarketDataProvider):
     async def get_large_cap_movers(self, min_market_cap: float = 50_000_000_000) -> list[MarketMover]:
         filtered = [item for item in MEGA_CAP_UNIVERSE if item.market_cap >= min_market_cap]
         return sorted(filtered, key=lambda item: abs(item.change_percent), reverse=True)
+
+    async def get_top_market_movers(self, direction: str = 'gainers', limit: int = 10) -> list[MarketMover]:
+        reverse = direction == 'gainers'
+        return sorted(MEGA_CAP_UNIVERSE, key=lambda item: item.change_percent, reverse=reverse)[:limit]
 
     async def get_ticker_snapshot(self, ticker: str) -> dict:
         symbol = ticker.upper()
