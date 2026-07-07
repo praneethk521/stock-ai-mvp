@@ -36,7 +36,7 @@
 - [x] Large-cap movers
 - [x] Stock recommendation page
 - [ ] Watchlist UI
-- [ ] Admin status UI
+- [x] Admin status UI
 
 ## M7: Agentic AI / MCP Layer
 - [ ] Define MCP tool contracts

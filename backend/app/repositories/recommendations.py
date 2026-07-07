@@ -20,3 +20,18 @@ def create_recommendation_record(db: Session, recommendation: Recommendation) ->
     db.commit()
     db.refresh(record)
     return record
+
+
+def list_recent_recommendations(
+    db: Session,
+    ticker: str | None = None,
+    limit: int = 20,
+) -> list[RecommendationRecord]:
+    query = db.query(RecommendationRecord)
+    if ticker:
+        query = query.filter(RecommendationRecord.ticker == ticker.upper())
+    return query.order_by(RecommendationRecord.id.desc()).limit(limit).all()
+
+
+def count_recommendations(db: Session) -> int:
+    return db.query(RecommendationRecord).count()

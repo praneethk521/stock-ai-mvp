@@ -4,12 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
-from app.repositories.recommendations import create_recommendation_record
-from app.schemas.market import Recommendation
+from app.core.config import get_settings
+from app.repositories.recommendations import count_recommendations, create_recommendation_record, list_recent_recommendations
+from app.schemas.market import Recommendation, RecommendationHistoryItem
 from app.services.factory import get_market_provider, get_news_provider
 from app.services.recommendation_engine import RecommendationEngine
 
 router = APIRouter()
+settings = get_settings()
 market_provider = get_market_provider()
 news_provider = get_news_provider()
 engine = RecommendationEngine()
@@ -36,6 +38,29 @@ async def market_overview() -> dict:
 async def large_cap_movers(min_market_cap: float = 50_000_000_000) -> dict:
     movers = await market_provider.get_large_cap_movers(min_market_cap=min_market_cap)
     return {'min_market_cap': min_market_cap, 'items': movers}
+
+
+@router.get('/admin/status')
+async def admin_status(db: Session = Depends(get_db)) -> dict:
+    return {
+        'app_env': settings.app_env,
+        'market_data_provider': settings.market_data_provider,
+        'news_provider': settings.news_provider,
+        'recommendation_model': engine.model_version,
+        'persisted_recommendations': count_recommendations(db),
+        'disclaimer': 'Informational only. Not financial advice.',
+    }
+
+
+@router.get('/recommendations/recent', response_model=list[RecommendationHistoryItem])
+async def recent_recommendations(
+    ticker: str | None = None,
+    limit: int = 20,
+    db: Session = Depends(get_db),
+) -> list[RecommendationHistoryItem]:
+    symbol = validate_ticker(ticker) if ticker else None
+    bounded_limit = min(max(limit, 1), 100)
+    return list_recent_recommendations(db, ticker=symbol, limit=bounded_limit)
 
 
 @router.get('/stocks/{ticker}')

@@ -29,7 +29,13 @@ app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
 
 
+def reset_db():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+
+
 def test_large_cap_movers_returns_top_ten_sorted_by_absolute_move():
+    reset_db()
     res = client.get('/api/v1/market/large-cap-movers')
 
     assert res.status_code == 200
@@ -40,6 +46,7 @@ def test_large_cap_movers_returns_top_ten_sorted_by_absolute_move():
 
 
 def test_stock_recommendation_accepts_class_share_ticker():
+    reset_db()
     res = client.get('/api/v1/stocks/BRK.B/recommendation')
 
     assert res.status_code == 200
@@ -48,3 +55,40 @@ def test_stock_recommendation_accepts_class_share_ticker():
     with TestingSessionLocal() as db:
         saved = db.query(RecommendationRecord).filter_by(ticker='BRK.B').one()
         assert saved.recommendation == res.json()['recommendation']
+
+
+def test_recent_recommendations_returns_persisted_history():
+    reset_db()
+    client.get('/api/v1/stocks/NVDA/recommendation')
+    client.get('/api/v1/stocks/TSLA/recommendation')
+
+    res = client.get('/api/v1/recommendations/recent?limit=1')
+
+    assert res.status_code == 200
+    items = res.json()
+    assert len(items) == 1
+    assert items[0]['ticker'] == 'TSLA'
+    assert items[0]['model_version'] == 'rules-v1'
+
+
+def test_recent_recommendations_filters_by_ticker():
+    reset_db()
+    client.get('/api/v1/stocks/NVDA/recommendation')
+    client.get('/api/v1/stocks/TSLA/recommendation')
+
+    res = client.get('/api/v1/recommendations/recent?ticker=NVDA')
+
+    assert res.status_code == 200
+    assert [item['ticker'] for item in res.json()] == ['NVDA']
+
+
+def test_admin_status_includes_persistence_count():
+    reset_db()
+    client.get('/api/v1/stocks/NVDA/recommendation')
+
+    res = client.get('/api/v1/admin/status')
+
+    assert res.status_code == 200
+    data = res.json()
+    assert data['market_data_provider'] == 'mock'
+    assert data['persisted_recommendations'] == 1

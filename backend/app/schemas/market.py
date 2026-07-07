@@ -32,3 +32,17 @@ class Recommendation(BaseModel):
     timestamp: datetime
     model_version: str = 'rules-v1'
     disclaimer: str = 'Informational only. Not financial advice.'
+
+
+class RecommendationHistoryItem(BaseModel):
+    id: int
+    ticker: str
+    recommendation: str
+    trade_horizon: str
+    confidence_score: float
+    risk_score: float
+    explanation: str
+    supporting_signals: dict
+    generated_at: datetime
+    created_at: datetime
+    model_version: str

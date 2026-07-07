@@ -5,3 +5,8 @@ a { color: inherit; text-decoration: none; }
 .badge { padding: 4px 8px; border-radius: 999px; background: #24304d; font-size: 12px; }
 nav { display:flex; gap:14px; flex-wrap: wrap; margin: 20px 0; }
 main { max-width: 1180px; margin: auto; padding: 24px; }
+.table { display: grid; gap: 8px; }
+.row { display: grid; grid-template-columns: 1fr 1fr 1.4fr 2fr; gap: 12px; padding: 10px 0; border-top: 1px solid #26314f; }
+@media (max-width: 760px) {
+  .row { grid-template-columns: 1fr; }
+}
