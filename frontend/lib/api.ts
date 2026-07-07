@@ -5,3 +5,16 @@ export async function apiGet<T>(path: string): Promise<T> {
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();
 }
+
+export async function apiSend<T>(path: string, init: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(init.headers ?? {}),
+    },
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}

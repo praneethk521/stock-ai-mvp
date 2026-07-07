@@ -14,9 +14,10 @@ MVP scaffold created with FastAPI backend, Next.js frontend, Docker Compose, moc
 - Expanded mock market universe to top-10 mega-cap tickers and ranked movers by absolute daily move
 - Added Alembic migration setup and persisted generated recommendations to PostgreSQL
 - Added recommendation history API plus Admin and Recommendations UI
+- Added watchlist persistence, API endpoints, and Watchlist UI
 
 ## Next Codex Task
-Add watchlist persistence and build the Watchlist UI.
+Build News Sentiment UI v1 and prepare for a real news/market data provider integration.
 
 ## Working Rules for Codex
 After every meaningful change:
@@ -29,7 +30,7 @@ After every meaningful change:
 ## Known Gaps
 - Data is mocked
 - Top-10 market cap list is an illustrative mock universe and should be replaced by a real market-data provider
-- Watchlist UI is still a placeholder
+- Watchlist is global/unauthenticated until auth is implemented
 - Auth is not implemented
 - Real provider integrations are not implemented
 - MCP server is documented but not implemented

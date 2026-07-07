@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.core.config import get_settings
 from app.repositories.recommendations import count_recommendations, create_recommendation_record, list_recent_recommendations
-from app.schemas.market import Recommendation, RecommendationHistoryItem
+from app.repositories.watchlist import delete_watchlist_item, list_watchlist_items, upsert_watchlist_item
+from app.schemas.market import Recommendation, RecommendationHistoryItem, WatchlistItemCreate, WatchlistItemRead
 from app.services.factory import get_market_provider, get_news_provider
 from app.services.recommendation_engine import RecommendationEngine
 
@@ -61,6 +62,26 @@ async def recent_recommendations(
     symbol = validate_ticker(ticker) if ticker else None
     bounded_limit = min(max(limit, 1), 100)
     return list_recent_recommendations(db, ticker=symbol, limit=bounded_limit)
+
+
+@router.get('/watchlist', response_model=list[WatchlistItemRead])
+async def watchlist(db: Session = Depends(get_db)) -> list[WatchlistItemRead]:
+    return list_watchlist_items(db)
+
+
+@router.post('/watchlist', response_model=WatchlistItemRead)
+async def add_watchlist_item(item: WatchlistItemCreate, db: Session = Depends(get_db)) -> WatchlistItemRead:
+    symbol = validate_ticker(item.ticker)
+    return upsert_watchlist_item(db, ticker=symbol, notes=item.notes.strip())
+
+
+@router.delete('/watchlist/{ticker}')
+async def remove_watchlist_item(ticker: str, db: Session = Depends(get_db)) -> dict:
+    symbol = validate_ticker(ticker)
+    deleted = delete_watchlist_item(db, ticker=symbol)
+    if not deleted:
+        raise HTTPException(status_code=404, detail='Watchlist item not found')
+    return {'deleted': True, 'ticker': symbol}
 
 
 @router.get('/stocks/{ticker}')

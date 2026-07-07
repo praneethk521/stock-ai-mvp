@@ -46,3 +46,15 @@ class RecommendationHistoryItem(BaseModel):
     generated_at: datetime
     created_at: datetime
     model_version: str
+
+
+class WatchlistItemCreate(BaseModel):
+    ticker: str
+    notes: str = Field(default='', max_length=500)
+
+
+class WatchlistItemRead(BaseModel):
+    id: int
+    ticker: str
+    notes: str
+    created_at: datetime

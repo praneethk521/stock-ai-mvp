@@ -92,3 +92,34 @@ def test_admin_status_includes_persistence_count():
     data = res.json()
     assert data['market_data_provider'] == 'mock'
     assert data['persisted_recommendations'] == 1
+
+
+def test_watchlist_add_list_update_and_delete():
+    reset_db()
+
+    create_res = client.post('/api/v1/watchlist', json={'ticker': 'nvda', 'notes': 'AI leader'})
+    assert create_res.status_code == 200
+    assert create_res.json()['ticker'] == 'NVDA'
+    assert create_res.json()['notes'] == 'AI leader'
+
+    update_res = client.post('/api/v1/watchlist', json={'ticker': 'NVDA', 'notes': 'Updated note'})
+    assert update_res.status_code == 200
+    assert update_res.json()['notes'] == 'Updated note'
+
+    list_res = client.get('/api/v1/watchlist')
+    assert list_res.status_code == 200
+    assert [item['ticker'] for item in list_res.json()] == ['NVDA']
+
+    delete_res = client.delete('/api/v1/watchlist/NVDA')
+    assert delete_res.status_code == 200
+    assert delete_res.json() == {'deleted': True, 'ticker': 'NVDA'}
+
+    assert client.get('/api/v1/watchlist').json() == []
+
+
+def test_watchlist_rejects_invalid_ticker():
+    reset_db()
+
+    res = client.post('/api/v1/watchlist', json={'ticker': 'BAD/TICKER', 'notes': ''})
+
+    assert res.status_code == 400

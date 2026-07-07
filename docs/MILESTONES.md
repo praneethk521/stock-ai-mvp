@@ -16,7 +16,7 @@
 ## M3: Database Schema
 - [x] Recommendation model stub
 - [x] Alembic migration setup
-- [ ] Watchlist tables
+- [x] Watchlist tables
 - [ ] News article tables
 
 ## M4: Provider Abstractions
@@ -35,7 +35,7 @@
 - [x] Dashboard
 - [x] Large-cap movers
 - [x] Stock recommendation page
-- [ ] Watchlist UI
+- [x] Watchlist UI
 - [x] Admin status UI
 
 ## M7: Agentic AI / MCP Layer

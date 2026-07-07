@@ -48,6 +48,7 @@ Open http://localhost:3000.
 - Mock ticker news
 - Initial recommendation engine
 - Persisted recommendation records
+- Persisted watchlist
 - Codex-friendly docs/status
 
 ## Next implementation steps

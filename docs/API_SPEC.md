@@ -17,6 +17,19 @@ Returns app environment, provider modes, recommendation model, and persisted rec
 ## GET `/recommendations/recent?ticker=NVDA&limit=20`
 Returns persisted recommendation history, newest first. `ticker` is optional and `limit` is capped at 100.
 
+## GET `/watchlist`
+Returns saved watchlist tickers.
+
+## POST `/watchlist`
+Creates or updates a watchlist ticker.
+
+Body:
+- ticker
+- notes
+
+## DELETE `/watchlist/{ticker}`
+Removes a ticker from the watchlist.
+
 ## GET `/stocks/{ticker}`
 Returns ticker snapshot and related news.
 
