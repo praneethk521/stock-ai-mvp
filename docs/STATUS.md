@@ -15,9 +15,10 @@ MVP scaffold created with FastAPI backend, Next.js frontend, Docker Compose, moc
 - Added Alembic migration setup and persisted generated recommendations to PostgreSQL
 - Added recommendation history API plus Admin and Recommendations UI
 - Added watchlist persistence, API endpoints, and Watchlist UI
+- Added News Sentiment UI v1 backed by mock provider sentiment summaries
 
 ## Next Codex Task
-Build News Sentiment UI v1 and prepare for a real news/market data provider integration.
+Implement the first real market/news data provider adapter behind the existing provider interfaces.
 
 ## Working Rules for Codex
 After every meaningful change:
@@ -34,4 +35,4 @@ After every meaningful change:
 - Auth is not implemented
 - Real provider integrations are not implemented
 - MCP server is documented but not implemented
-- Frontend placeholders remain for several tabs
+- Frontend placeholders remain for deeper admin/provider workflows

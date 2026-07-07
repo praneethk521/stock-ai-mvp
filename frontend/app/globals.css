@@ -12,6 +12,9 @@ main { max-width: 1180px; margin: auto; padding: 24px; }
 .form { display: grid; gap: 14px; grid-template-columns: minmax(120px, 180px) minmax(220px, 1fr) auto; align-items: end; }
 .table { display: grid; gap: 8px; }
 .row { display: grid; grid-template-columns: 1fr 1fr 1.4fr 2fr; gap: 12px; padding: 10px 0; border-top: 1px solid #26314f; }
+.news-item { border-top: 1px solid #26314f; padding-top: 8px; }
+.news-item p { margin-bottom: 4px; }
+small { color: #b8c3e6; }
 @media (max-width: 760px) {
   .form { grid-template-columns: 1fr; }
   .row { grid-template-columns: 1fr; }

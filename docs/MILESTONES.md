@@ -37,6 +37,7 @@
 - [x] Stock recommendation page
 - [x] Watchlist UI
 - [x] Admin status UI
+- [x] News sentiment UI
 
 ## M7: Agentic AI / MCP Layer
 - [ ] Define MCP tool contracts

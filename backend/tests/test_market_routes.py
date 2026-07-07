@@ -123,3 +123,33 @@ def test_watchlist_rejects_invalid_ticker():
     res = client.post('/api/v1/watchlist', json={'ticker': 'BAD/TICKER', 'notes': ''})
 
     assert res.status_code == 400
+
+
+def test_news_sentiment_returns_default_tracked_tickers():
+    reset_db()
+
+    res = client.get('/api/v1/news/sentiment')
+
+    assert res.status_code == 200
+    items = res.json()
+    assert len(items) == 10
+    assert items[0]['ticker'] == 'NVDA'
+    assert items[0]['article_count'] >= 1
+    assert items[0]['sentiment'] in {'positive', 'neutral', 'negative'}
+
+
+def test_news_sentiment_filters_tickers_and_deduplicates():
+    reset_db()
+
+    res = client.get('/api/v1/news/sentiment?tickers=tsla,nvda,TSLA')
+
+    assert res.status_code == 200
+    assert [item['ticker'] for item in res.json()] == ['TSLA', 'NVDA']
+
+
+def test_news_sentiment_rejects_invalid_ticker():
+    reset_db()
+
+    res = client.get('/api/v1/news/sentiment?tickers=NVDA,BAD/TICKER')
+
+    assert res.status_code == 400

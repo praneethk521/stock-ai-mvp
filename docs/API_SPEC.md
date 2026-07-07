@@ -11,6 +11,9 @@ Returns major index summary.
 ## GET `/market/large-cap-movers?min_market_cap=50000000000`
 Returns stocks above market-cap threshold with price movement.
 
+## GET `/news/sentiment?tickers=NVDA,MSFT`
+Returns average sentiment and mock news articles by ticker. `tickers` is optional; when omitted, the tracked mega-cap universe is used.
+
 ## GET `/admin/status`
 Returns app environment, provider modes, recommendation model, and persisted recommendation count.
 

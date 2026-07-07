@@ -21,6 +21,14 @@ class NewsArticle(BaseModel):
     sentiment_score: float
 
 
+class NewsSentimentItem(BaseModel):
+    ticker: str
+    average_sentiment_score: float
+    sentiment: str
+    article_count: int
+    articles: list[NewsArticle]
+
+
 class Recommendation(BaseModel):
     ticker: str
     recommendation: str

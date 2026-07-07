@@ -7,7 +7,7 @@ from app.core.db import get_db
 from app.core.config import get_settings
 from app.repositories.recommendations import count_recommendations, create_recommendation_record, list_recent_recommendations
 from app.repositories.watchlist import delete_watchlist_item, list_watchlist_items, upsert_watchlist_item
-from app.schemas.market import Recommendation, RecommendationHistoryItem, WatchlistItemCreate, WatchlistItemRead
+from app.schemas.market import NewsArticle, NewsSentimentItem, Recommendation, RecommendationHistoryItem, WatchlistItemCreate, WatchlistItemRead
 from app.services.factory import get_market_provider, get_news_provider
 from app.services.recommendation_engine import RecommendationEngine
 
@@ -17,12 +17,21 @@ market_provider = get_market_provider()
 news_provider = get_news_provider()
 engine = RecommendationEngine()
 TICKER_PATTERN = re.compile(r'^[A-Za-z0-9.\-]{1,12}$')
+DEFAULT_SENTIMENT_TICKERS = ['NVDA', 'TSLA', 'AAPL', 'MSFT', 'AMZN', 'META', 'AVGO', 'TSM', 'GOOG', 'BRK.B']
 
 
 def validate_ticker(ticker: str) -> str:
     if not TICKER_PATTERN.fullmatch(ticker):
         raise HTTPException(status_code=400, detail='Invalid ticker')
     return ticker.upper()
+
+
+def classify_sentiment(score: float) -> str:
+    if score >= 0.25:
+        return 'positive'
+    if score <= -0.25:
+        return 'negative'
+    return 'neutral'
 
 
 @router.get('/health')
@@ -39,6 +48,26 @@ async def market_overview() -> dict:
 async def large_cap_movers(min_market_cap: float = 50_000_000_000) -> dict:
     movers = await market_provider.get_large_cap_movers(min_market_cap=min_market_cap)
     return {'min_market_cap': min_market_cap, 'items': movers}
+
+
+@router.get('/news/sentiment', response_model=list[NewsSentimentItem])
+async def news_sentiment(tickers: str | None = None) -> list[NewsSentimentItem]:
+    symbols = [validate_ticker(item.strip()) for item in tickers.split(',') if item.strip()] if tickers else DEFAULT_SENTIMENT_TICKERS
+    unique_symbols = list(dict.fromkeys(symbols))[:20]
+    results: list[NewsSentimentItem] = []
+    for symbol in unique_symbols:
+        articles: list[NewsArticle] = await news_provider.get_company_news(symbol)
+        avg_score = sum(article.sentiment_score for article in articles) / len(articles) if articles else 0.0
+        results.append(
+            NewsSentimentItem(
+                ticker=symbol,
+                average_sentiment_score=round(avg_score, 3),
+                sentiment=classify_sentiment(avg_score),
+                article_count=len(articles),
+                articles=articles,
+            )
+        )
+    return results
 
 
 @router.get('/admin/status')
