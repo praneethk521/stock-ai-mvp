@@ -16,6 +16,8 @@ def make_client(payloads: dict[str, dict]) -> PolygonClient:
     return PolygonClient(
         api_key='test-key',
         base_url='https://api.polygon.test',
+        cache_ttl_seconds=30,
+        retry_count=0,
         http_client=httpx.Client(transport=httpx.MockTransport(handler)),
     )
 
@@ -37,6 +39,18 @@ async def test_polygon_market_provider_maps_snapshot_and_market_cap():
                 'status': 'OK',
                 'results': {'market_cap': 4_800_000_000_000},
             },
+            '/v1/indicators/rsi/NVDA': {
+                'status': 'OK',
+                'results': {'values': [{'value': 62.4}]},
+            },
+            '/v1/indicators/sma/NVDA': {
+                'status': 'OK',
+                'results': {'values': [{'value': 198.0}]},
+            },
+            '/v1/indicators/macd/NVDA': {
+                'status': 'OK',
+                'results': {'values': [{'value': 3.2, 'signal': 2.8}]},
+            },
         }
     )
     provider = PolygonMarketDataProvider(client)
@@ -48,6 +62,9 @@ async def test_polygon_market_provider_maps_snapshot_and_market_cap():
     assert snapshot['change_percent'] == 2.82
     assert snapshot['volume'] == 123456
     assert snapshot['market_cap'] == 4_800_000_000_000
+    assert snapshot['rsi'] == 62.4
+    assert snapshot['macd_signal'] == 'bullish'
+    assert snapshot['moving_average_signal'] == 'bullish'
 
 
 @pytest.mark.asyncio
@@ -102,3 +119,66 @@ def test_polygon_client_sends_api_key():
 
     assert seen_query['apiKey'] == 'secret-key'
     assert seen_query['ticker'] == 'NVDA'
+
+
+def test_polygon_client_caches_get_responses():
+    calls = {'count': 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls['count'] += 1
+        return httpx.Response(200, json={'status': 'OK', 'count': calls['count']})
+
+    client = PolygonClient(
+        api_key='secret-key',
+        base_url='https://api.polygon.test',
+        cache_ttl_seconds=30,
+        retry_count=0,
+        http_client=httpx.Client(transport=httpx.MockTransport(handler)),
+    )
+
+    first = client.get('/v1/marketstatus/now')
+    second = client.get('/v1/marketstatus/now')
+
+    assert first == second
+    assert calls['count'] == 1
+
+
+def test_polygon_client_retries_transient_errors():
+    calls = {'count': 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls['count'] += 1
+        if calls['count'] == 1:
+            return httpx.Response(503, json={'status': 'ERROR'})
+        return httpx.Response(200, json={'status': 'OK'})
+
+    client = PolygonClient(
+        api_key='secret-key',
+        base_url='https://api.polygon.test',
+        retry_count=1,
+        http_client=httpx.Client(transport=httpx.MockTransport(handler)),
+    )
+
+    assert client.get('/v1/marketstatus/now') == {'status': 'OK'}
+    assert calls['count'] == 2
+
+
+def test_polygon_client_health_check_maps_market_status():
+    client = make_client(
+        {
+            '/v1/marketstatus/now': {
+                'status': 'OK',
+                'market': 'open',
+                'serverTime': '2026-07-07T13:30:00Z',
+            }
+        }
+    )
+
+    health = client.health_check()
+
+    assert health == {
+        'provider': 'polygon',
+        'ok': True,
+        'market': 'open',
+        'server_time': '2026-07-07T13:30:00Z',
+    }

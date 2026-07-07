@@ -91,6 +91,8 @@ def test_admin_status_includes_persistence_count():
     assert res.status_code == 200
     data = res.json()
     assert data['market_data_provider'] == 'mock'
+    assert data['market_provider_health']['ok'] is True
+    assert data['news_provider_health']['ok'] is True
     assert data['persisted_recommendations'] == 1
 
 

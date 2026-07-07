@@ -7,6 +7,8 @@ type AdminStatus = {
   app_env: string;
   market_data_provider: string;
   news_provider: string;
+  market_provider_health: { ok: boolean; provider: string; market?: string; mode?: string; error?: string };
+  news_provider_health: { ok: boolean; provider: string; market?: string; mode?: string; error?: string };
   recommendation_model: string;
   persisted_recommendations: number;
   disclaimer: string;
@@ -37,6 +39,8 @@ export default async function Page() {
           <p>Environment: {status.app_env}</p>
           <p>Market provider: {status.market_data_provider}</p>
           <p>News provider: {status.news_provider}</p>
+          <p>Market health: {status.market_provider_health.ok ? 'ok' : 'error'}</p>
+          <p>News health: {status.news_provider_health.ok ? 'ok' : 'error'}</p>
           <p>Recommendation model: {status.recommendation_model}</p>
         </div>
         <div className="card">

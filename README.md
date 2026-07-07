@@ -19,6 +19,9 @@ The local demo defaults to mock providers. To use Polygon-backed market/news dat
 MARKET_DATA_PROVIDER=polygon
 NEWS_PROVIDER=polygon
 POLYGON_API_KEY=your_polygon_key
+PROVIDER_CACHE_TTL_SECONDS=30
+PROVIDER_RETRY_COUNT=2
+PROVIDER_TIMEOUT_SECONDS=10
 ```
 
 Keep API keys in local `.env` files or a secret manager. Do not commit real keys.
@@ -60,7 +63,7 @@ Open http://localhost:3000.
 - Initial recommendation engine
 - Persisted recommendation records
 - Persisted watchlist
-- Polygon provider adapter foundation
+- Polygon provider adapter foundation with health, caching, retry, and indicator enrichment
 - Codex-friendly docs/status
 
 ## Next implementation steps

@@ -25,11 +25,14 @@ Every provider should implement:
 - [x] Polygon market snapshot adapter for tracked mega-cap tickers
 - [x] Polygon ticker reference lookup for market cap
 - [x] Polygon news adapter using `/v2/reference/news`
+- [x] Polygon market status health check using `/v1/marketstatus/now`
+- [x] In-process provider response caching
+- [x] Retry/backoff for transient Polygon errors
+- [x] Polygon RSI, MACD, and SMA indicator enrichment
 - [ ] Polygon top market movers endpoint integration
-- [ ] Polygon aggregates/candles for technical indicators
-- [ ] Rate-limit/backoff policy
-- [ ] Response caching
-- [ ] Provider health checks
+- [ ] Polygon aggregates/candles for custom technical calculations
+- [ ] Redis-backed provider cache
+- [ ] Structured provider request logging
 
 ## Compliance
 Use licensed APIs where possible. Scraping should be opt-in, compliant with site terms, and respectful of robots.txt.

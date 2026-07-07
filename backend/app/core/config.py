@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     news_provider: str = 'mock'
     polygon_base_url: str = 'https://api.polygon.io'
     provider_timeout_seconds: float = 10.0
+    provider_cache_ttl_seconds: int = 30
+    provider_retry_count: int = 2
     openai_api_key: str | None = None
     polygon_api_key: str | None = None
     finnhub_api_key: str | None = None

@@ -14,6 +14,8 @@ def get_polygon_client() -> PolygonClient:
         api_key=settings.polygon_api_key,
         base_url=settings.polygon_base_url,
         timeout=settings.provider_timeout_seconds,
+        cache_ttl_seconds=settings.provider_cache_ttl_seconds,
+        retry_count=settings.provider_retry_count,
     )
 
 

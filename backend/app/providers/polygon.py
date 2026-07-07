@@ -1,4 +1,5 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from time import sleep
 from typing import Any
 
 import httpx
@@ -18,26 +19,65 @@ class PolygonClient:
         api_key: str,
         base_url: str = 'https://api.polygon.io',
         timeout: float = 10.0,
+        cache_ttl_seconds: int = 30,
+        retry_count: int = 2,
         http_client: httpx.Client | None = None,
     ) -> None:
         self.api_key = api_key
         self.base_url = base_url.rstrip('/')
         self.timeout = timeout
+        self.cache_ttl_seconds = cache_ttl_seconds
+        self.retry_count = retry_count
         self.http_client = http_client or httpx.Client(timeout=timeout)
+        self._cache: dict[tuple[str, tuple[tuple[str, str], ...]], tuple[datetime, dict[str, Any]]] = {}
 
     def get(self, path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         query = {'apiKey': self.api_key, **(params or {})}
-        try:
-            res = self.http_client.get(f'{self.base_url}{path}', params=query)
-            res.raise_for_status()
-        except httpx.HTTPError as exc:
-            raise PolygonProviderError(f'Polygon request failed for {path}') from exc
-        data = res.json()
+        cache_key = self._cache_key(path, query)
+        cached = self._cache.get(cache_key)
+        if cached and cached[0] > datetime.now(timezone.utc):
+            return cached[1]
+
+        last_error: httpx.HTTPError | None = None
+        for attempt in range(self.retry_count + 1):
+            try:
+                res = self.http_client.get(f'{self.base_url}{path}', params=query)
+                if res.status_code in {429, 500, 502, 503, 504} and attempt < self.retry_count:
+                    sleep(0.2 * (attempt + 1))
+                    continue
+                res.raise_for_status()
+                data = res.json()
+                break
+            except httpx.HTTPError as exc:
+                last_error = exc
+                if attempt < self.retry_count:
+                    sleep(0.2 * (attempt + 1))
+                    continue
+                raise PolygonProviderError(f'Polygon request failed for {path}') from exc
+        else:
+            raise PolygonProviderError(f'Polygon request failed for {path}') from last_error
+
         status = str(data.get('status', '')).lower()
         if status in {'error', 'not_found'}:
             message = data.get('error') or data.get('message') or 'Polygon returned an error'
             raise PolygonProviderError(str(message))
+        if self.cache_ttl_seconds > 0:
+            expires_at = datetime.now(timezone.utc) + timedelta(seconds=self.cache_ttl_seconds)
+            self._cache[cache_key] = (expires_at, data)
         return data
+
+    def health_check(self) -> dict[str, Any]:
+        data = self.get('/v1/marketstatus/now')
+        return {
+            'provider': 'polygon',
+            'ok': True,
+            'market': data.get('market'),
+            'server_time': data.get('serverTime'),
+        }
+
+    def _cache_key(self, path: str, query: dict[str, Any]) -> tuple[str, tuple[tuple[str, str], ...]]:
+        normalized = tuple(sorted((key, str(value)) for key, value in query.items()))
+        return path, normalized
 
 
 def _as_float(value: Any, default: float = 0.0) -> float:
@@ -89,7 +129,11 @@ class PolygonMarketDataProvider(MarketDataProvider):
     async def get_ticker_snapshot(self, ticker: str) -> dict:
         snapshot = self._get_ticker_snapshot_sync(ticker)
         snapshot['market_cap'] = self._get_market_cap(ticker, default=snapshot['market_cap'])
+        snapshot.update(self._get_technical_indicators(ticker, price=snapshot['price']))
         return snapshot
+
+    def health_check(self) -> dict[str, Any]:
+        return self.client.health_check()
 
     def _get_ticker_snapshot_sync(self, ticker: str) -> dict:
         symbol = ticker.upper()
@@ -127,6 +171,49 @@ class PolygonMarketDataProvider(MarketDataProvider):
         results = data.get('results') or {}
         return _as_float(results.get('market_cap'), default)
 
+    def _get_technical_indicators(self, ticker: str, price: float) -> dict[str, Any]:
+        symbol = ticker.upper()
+        rsi = self._get_latest_indicator_value(f'/v1/indicators/rsi/{symbol}', default=50.0)
+        sma = self._get_latest_indicator_value(f'/v1/indicators/sma/{symbol}', params={'window': 50}, default=0.0)
+        macd_payload = self._get_latest_indicator(f'/v1/indicators/macd/{symbol}')
+        macd_value = _as_float(macd_payload.get('value'))
+        macd_signal_value = _as_float(macd_payload.get('signal'))
+        return {
+            'rsi': rsi,
+            'macd_signal': self._macd_signal(macd_payload, macd_value, macd_signal_value),
+            'moving_average_signal': 'bullish' if sma and price >= sma else 'bearish' if sma else 'neutral',
+        }
+
+    def _macd_signal(self, payload: dict[str, Any], value: float, signal: float) -> str:
+        if not payload:
+            return 'neutral'
+        return 'bullish' if value >= signal else 'bearish'
+
+    def _get_latest_indicator_value(
+        self,
+        path: str,
+        params: dict[str, Any] | None = None,
+        default: float = 0.0,
+    ) -> float:
+        payload = self._get_latest_indicator(path, params=params)
+        return _as_float(payload.get('value'), default)
+
+    def _get_latest_indicator(self, path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+        query = {
+            'timespan': 'day',
+            'adjusted': 'true',
+            'series_type': 'close',
+            'order': 'desc',
+            'limit': 1,
+            **(params or {}),
+        }
+        try:
+            data = self.client.get(path, params=query)
+        except PolygonProviderError:
+            return {}
+        values = ((data.get('results') or {}).get('values') or [])
+        return values[0] if values else {}
+
 
 class PolygonNewsProvider(NewsProvider):
     def __init__(self, client: PolygonClient) -> None:
@@ -137,6 +224,9 @@ class PolygonNewsProvider(NewsProvider):
         data = self.client.get('/v2/reference/news', params={'ticker': symbol, 'limit': 10, 'order': 'desc'})
         articles = data.get('results') or []
         return [self._map_article(symbol, article) for article in articles]
+
+    def health_check(self) -> dict[str, Any]:
+        return self.client.health_check()
 
     def _map_article(self, ticker: str, article: dict[str, Any]) -> NewsArticle:
         sentiment = self._extract_sentiment(ticker, article)

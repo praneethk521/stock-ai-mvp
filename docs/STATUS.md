@@ -17,9 +17,10 @@ MVP scaffold created with FastAPI backend, Next.js frontend, Docker Compose, moc
 - Added watchlist persistence, API endpoints, and Watchlist UI
 - Added News Sentiment UI v1 backed by mock provider sentiment summaries
 - Added Polygon provider adapter foundation for market snapshots, ticker reference data, and ticker news
+- Added Polygon provider health checks, TTL caching, retry/backoff, and RSI/MACD/SMA indicator enrichment
 
 ## Next Codex Task
-Add provider health checks, response caching, and Polygon aggregates/technical indicators.
+Add Redis-backed provider caching, structured provider logging, and Polygon top market movers integration.
 
 ## Working Rules for Codex
 After every meaningful change:
@@ -34,6 +35,6 @@ After every meaningful change:
 - Polygon top market movers and aggregates are not wired yet
 - Watchlist is global/unauthenticated until auth is implemented
 - Auth is not implemented
-- Real provider integrations are not implemented
+- Polygon provider integration is foundational; production cache/logging/top-movers work remains
 - MCP server is documented but not implemented
 - Frontend placeholders remain for deeper admin/provider workflows

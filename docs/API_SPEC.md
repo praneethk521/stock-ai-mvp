@@ -15,7 +15,7 @@ Returns stocks above market-cap threshold with price movement.
 Returns average sentiment and mock news articles by ticker. `tickers` is optional; when omitted, the tracked mega-cap universe is used.
 
 ## GET `/admin/status`
-Returns app environment, provider modes, recommendation model, and persisted recommendation count.
+Returns app environment, provider modes, provider health, recommendation model, and persisted recommendation count.
 
 ## GET `/recommendations/recent?ticker=NVDA&limit=20`
 Returns persisted recommendation history, newest first. `ticker` is optional and `limit` is capped at 100.

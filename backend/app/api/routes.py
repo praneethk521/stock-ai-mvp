@@ -34,6 +34,16 @@ def classify_sentiment(score: float) -> str:
     return 'neutral'
 
 
+def provider_health(provider: object, name: str) -> dict:
+    health_check = getattr(provider, 'health_check', None)
+    if callable(health_check):
+        try:
+            return health_check()
+        except Exception as exc:
+            return {'provider': name, 'ok': False, 'error': str(exc)}
+    return {'provider': name, 'ok': True, 'mode': 'mock'}
+
+
 @router.get('/health')
 async def health() -> dict:
     return {'status': 'ok'}
@@ -76,6 +86,8 @@ async def admin_status(db: Session = Depends(get_db)) -> dict:
         'app_env': settings.app_env,
         'market_data_provider': settings.market_data_provider,
         'news_provider': settings.news_provider,
+        'market_provider_health': provider_health(market_provider, settings.market_data_provider),
+        'news_provider_health': provider_health(news_provider, settings.news_provider),
         'recommendation_model': engine.model_version,
         'persisted_recommendations': count_recommendations(db),
         'disclaimer': 'Informational only. Not financial advice.',
