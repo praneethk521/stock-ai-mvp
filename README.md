@@ -64,7 +64,8 @@ Open http://localhost:3000.
 - Persisted recommendation records
 - Persisted watchlist
 - Top market movers API and UI
-- Polygon provider adapter with health, Redis-backed caching, retry, request logging, top movers, and indicator enrichment
+- Historical candle API
+- Polygon provider adapter with health, Redis-backed caching, retry, request logging, top movers, aggregate candles, and custom indicator calculations
 - Codex-friendly docs/status
 
 ## Next implementation steps

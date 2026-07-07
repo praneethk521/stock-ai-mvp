@@ -11,6 +11,18 @@ class MarketMover(BaseModel):
     market_cap: float
 
 
+class StockCandle(BaseModel):
+    ticker: str
+    timestamp: datetime
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: int
+    vwap: float | None = None
+    transactions: int | None = None
+
+
 class NewsArticle(BaseModel):
     ticker: str
     title: str

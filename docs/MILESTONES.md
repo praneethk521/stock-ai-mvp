@@ -28,7 +28,7 @@
 
 ## M5: Recommendation Engine v1
 - [x] Rules-based engine
-- [ ] Add technical indicator calculations from candles
+- [x] Add technical indicator calculations from candles
 - [x] Persist recommendations
 
 ## M6: Frontend MVP

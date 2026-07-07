@@ -32,7 +32,7 @@ Every provider should implement:
 - [x] Polygon top market movers endpoint integration
 - [x] Redis-backed provider cache
 - [x] Structured provider request logging
-- [ ] Polygon aggregates/candles for custom technical calculations
+- [x] Polygon aggregates/candles for custom technical calculations
 
 ## Compliance
 Use licensed APIs where possible. Scraping should be opt-in, compliant with site terms, and respectful of robots.txt.

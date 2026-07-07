@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
-from app.schemas.market import MarketMover
+from datetime import datetime, timedelta, timezone
+
+from app.schemas.market import MarketMover, StockCandle
 
 
 class MarketDataProvider(ABC):
@@ -11,6 +13,9 @@ class MarketDataProvider(ABC):
 
     @abstractmethod
     async def get_top_market_movers(self, direction: str = 'gainers', limit: int = 10) -> list[MarketMover]: ...
+
+    @abstractmethod
+    async def get_historical_candles(self, ticker: str, days: int = 90) -> list[StockCandle]: ...
 
     @abstractmethod
     async def get_ticker_snapshot(self, ticker: str) -> dict: ...
@@ -49,6 +54,30 @@ class MockMarketDataProvider(MarketDataProvider):
     async def get_top_market_movers(self, direction: str = 'gainers', limit: int = 10) -> list[MarketMover]:
         reverse = direction == 'gainers'
         return sorted(MEGA_CAP_UNIVERSE, key=lambda item: item.change_percent, reverse=reverse)[:limit]
+
+    async def get_historical_candles(self, ticker: str, days: int = 90) -> list[StockCandle]:
+        symbol = ticker.upper()
+        mover = next((item for item in MEGA_CAP_UNIVERSE if item.ticker == symbol), None)
+        base_price = mover.price if mover else 250.0
+        base_volume = mover.volume if mover else 10_000_000
+        start = datetime.now(timezone.utc) - timedelta(days=days)
+        candles: list[StockCandle] = []
+        for index in range(days):
+            close = base_price * (1 + (index - days) * 0.0008)
+            candles.append(
+                StockCandle(
+                    ticker=symbol,
+                    timestamp=start + timedelta(days=index),
+                    open=round(close * 0.995, 2),
+                    high=round(close * 1.015, 2),
+                    low=round(close * 0.985, 2),
+                    close=round(close, 2),
+                    volume=base_volume + index * 10_000,
+                    vwap=round(close * 1.001, 2),
+                    transactions=100_000 + index,
+                )
+            )
+        return candles
 
     async def get_ticker_snapshot(self, ticker: str) -> dict:
         symbol = ticker.upper()

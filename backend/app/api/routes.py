@@ -7,7 +7,7 @@ from app.core.db import get_db
 from app.core.config import get_settings
 from app.repositories.recommendations import count_recommendations, create_recommendation_record, list_recent_recommendations
 from app.repositories.watchlist import delete_watchlist_item, list_watchlist_items, upsert_watchlist_item
-from app.schemas.market import NewsArticle, NewsSentimentItem, Recommendation, RecommendationHistoryItem, WatchlistItemCreate, WatchlistItemRead
+from app.schemas.market import NewsArticle, NewsSentimentItem, Recommendation, RecommendationHistoryItem, StockCandle, WatchlistItemCreate, WatchlistItemRead
 from app.services.factory import get_market_provider, get_news_provider
 from app.services.recommendation_engine import RecommendationEngine
 
@@ -150,6 +150,13 @@ async def stock_details(ticker: str) -> dict:
     snapshot = await market_provider.get_ticker_snapshot(symbol)
     news = await news_provider.get_company_news(symbol)
     return {'snapshot': snapshot, 'news': news}
+
+
+@router.get('/stocks/{ticker}/candles', response_model=list[StockCandle])
+async def stock_candles(ticker: str, days: int = 90) -> list[StockCandle]:
+    symbol = validate_ticker(ticker)
+    bounded_days = min(max(days, 20), 365)
+    return await market_provider.get_historical_candles(symbol, days=bounded_days)
 
 
 @router.get('/stocks/{ticker}/recommendation', response_model=Recommendation)

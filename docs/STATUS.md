@@ -19,9 +19,10 @@ MVP scaffold created with FastAPI backend, Next.js frontend, Docker Compose, moc
 - Added Polygon provider adapter foundation for market snapshots, ticker reference data, and ticker news
 - Added Polygon provider health checks, TTL caching, retry/backoff, and RSI/MACD/SMA indicator enrichment
 - Added top market movers API/UI, Polygon top movers integration, Redis-backed provider caching, and structured Polygon request logging
+- Added historical candle API/provider contract and Polygon aggregate-candle indicator calculations
 
 ## Next Codex Task
-Add Polygon aggregate candle ingestion and custom technical indicator calculations.
+Standardize API error responses and provider failure states in the frontend.
 
 ## Working Rules for Codex
 After every meaningful change:
@@ -33,7 +34,6 @@ After every meaningful change:
 
 ## Known Gaps
 - Local Docker demo still defaults to mock providers until `POLYGON_API_KEY` is configured
-- Polygon aggregate candles are not wired yet
 - Watchlist is global/unauthenticated until auth is implemented
 - Auth is not implemented
 - Polygon plan limits may affect some endpoints; provider errors surface through backend status/API responses

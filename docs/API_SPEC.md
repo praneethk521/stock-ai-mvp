@@ -39,6 +39,9 @@ Removes a ticker from the watchlist.
 ## GET `/stocks/{ticker}`
 Returns ticker snapshot and related news.
 
+## GET `/stocks/{ticker}/candles?days=90`
+Returns daily OHLCV candles from the active market provider. `days` is bounded from 20 to 365.
+
 ## GET `/stocks/{ticker}/recommendation`
 Generates, persists, and returns recommendation object:
 - recommendation

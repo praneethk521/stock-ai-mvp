@@ -81,6 +81,18 @@ def test_stock_recommendation_accepts_class_share_ticker():
         assert saved.recommendation == res.json()['recommendation']
 
 
+def test_stock_candles_returns_bounded_history():
+    reset_db()
+
+    res = client.get('/api/v1/stocks/NVDA/candles?days=30')
+
+    assert res.status_code == 200
+    candles = res.json()
+    assert len(candles) == 30
+    assert candles[0]['ticker'] == 'NVDA'
+    assert {'open', 'high', 'low', 'close', 'volume'} <= set(candles[0].keys())
+
+
 def test_recent_recommendations_returns_persisted_history():
     reset_db()
     client.get('/api/v1/stocks/NVDA/recommendation')

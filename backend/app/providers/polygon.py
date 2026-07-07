@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from statistics import stdev
 from time import sleep
 from typing import Any
 
@@ -7,7 +8,7 @@ import structlog
 
 from app.providers.market_data import MEGA_CAP_UNIVERSE, MarketDataProvider
 from app.providers.news import NewsProvider
-from app.schemas.market import MarketMover, NewsArticle
+from app.schemas.market import MarketMover, NewsArticle, StockCandle
 
 
 logger = structlog.get_logger(__name__)
@@ -182,6 +183,9 @@ class PolygonMarketDataProvider(MarketDataProvider):
             movers.append(self._map_snapshot_mover(result, company_name=company_name, market_cap=market_cap))
         return movers
 
+    async def get_historical_candles(self, ticker: str, days: int = 90) -> list[StockCandle]:
+        return self._get_historical_candles_sync(ticker, days=days)
+
     async def get_ticker_snapshot(self, ticker: str) -> dict:
         snapshot = self._get_ticker_snapshot_sync(ticker)
         snapshot['market_cap'] = self._get_market_cap(ticker, default=snapshot['market_cap'])
@@ -254,7 +258,43 @@ class PolygonMarketDataProvider(MarketDataProvider):
             market_cap=market_cap,
         )
 
+    def _get_historical_candles_sync(self, ticker: str, days: int = 90) -> list[StockCandle]:
+        symbol = ticker.upper()
+        bounded_days = min(max(days, 20), 365)
+        to_date = datetime.now(timezone.utc).date()
+        from_date = to_date - timedelta(days=bounded_days * 2)
+        try:
+            data = self.client.get(
+                f'/v2/aggs/ticker/{symbol}/range/1/day/{from_date.isoformat()}/{to_date.isoformat()}',
+                params={'adjusted': 'true', 'sort': 'asc', 'limit': 5000},
+            )
+        except PolygonProviderError:
+            return []
+        results = data.get('results') or []
+        candles = [self._map_candle(symbol, item) for item in results]
+        return candles[-bounded_days:]
+
+    def _map_candle(self, ticker: str, item: dict[str, Any]) -> StockCandle:
+        timestamp_ms = _as_int(item.get('t'))
+        timestamp = datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc) if timestamp_ms else datetime.now(timezone.utc)
+        return StockCandle(
+            ticker=ticker,
+            timestamp=timestamp,
+            open=_as_float(item.get('o')),
+            high=_as_float(item.get('h')),
+            low=_as_float(item.get('l')),
+            close=_as_float(item.get('c')),
+            volume=_as_int(item.get('v')),
+            vwap=_as_float(item.get('vw')) if item.get('vw') is not None else None,
+            transactions=_as_int(item.get('n')) if item.get('n') is not None else None,
+        )
+
     def _get_technical_indicators(self, ticker: str, price: float) -> dict[str, Any]:
+        candles = self._get_historical_candles_sync(ticker, days=90)
+        candle_indicators = self._calculate_candle_indicators(candles, price=price)
+        if candle_indicators:
+            return candle_indicators
+
         symbol = ticker.upper()
         rsi = self._get_latest_indicator_value(f'/v1/indicators/rsi/{symbol}', default=50.0)
         sma = self._get_latest_indicator_value(f'/v1/indicators/sma/{symbol}', params={'window': 50}, default=0.0)
@@ -265,7 +305,69 @@ class PolygonMarketDataProvider(MarketDataProvider):
             'rsi': rsi,
             'macd_signal': self._macd_signal(macd_payload, macd_value, macd_signal_value),
             'moving_average_signal': 'bullish' if sma and price >= sma else 'bearish' if sma else 'neutral',
+            'technical_indicator_source': 'polygon_indicators',
         }
+
+    def _calculate_candle_indicators(self, candles: list[StockCandle], price: float) -> dict[str, Any]:
+        closes = [item.close for item in candles if item.close > 0]
+        volumes = [item.volume for item in candles if item.volume >= 0]
+        if len(closes) < 35:
+            return {}
+
+        rsi = self._calculate_rsi(closes)
+        macd_line, signal_line = self._calculate_macd(closes)
+        sma_window = 50 if len(closes) >= 50 else 20
+        sma = sum(closes[-sma_window:]) / sma_window
+        volume_change = self._calculate_volume_change(volumes)
+        volatility = self._calculate_volatility(closes)
+        return {
+            'rsi': round(rsi, 2),
+            'macd_signal': 'bullish' if macd_line >= signal_line else 'bearish',
+            'moving_average_signal': 'bullish' if price >= sma else 'bearish',
+            'volume_change_percent': round(volume_change, 2),
+            'volatility': round(volatility, 4),
+            'technical_indicator_source': 'polygon_aggregates',
+        }
+
+    def _calculate_rsi(self, closes: list[float], period: int = 14) -> float:
+        deltas = [closes[index] - closes[index - 1] for index in range(1, len(closes))]
+        recent = deltas[-period:]
+        gains = [max(delta, 0.0) for delta in recent]
+        losses = [abs(min(delta, 0.0)) for delta in recent]
+        avg_gain = sum(gains) / period
+        avg_loss = sum(losses) / period
+        if avg_loss == 0:
+            return 100.0 if avg_gain else 50.0
+        rs = avg_gain / avg_loss
+        return 100 - (100 / (1 + rs))
+
+    def _calculate_macd(self, closes: list[float]) -> tuple[float, float]:
+        macd_series = [fast - slow for fast, slow in zip(self._ema_series(closes, 12), self._ema_series(closes, 26), strict=False)]
+        signal_series = self._ema_series(macd_series, 9)
+        return macd_series[-1], signal_series[-1]
+
+    def _ema_series(self, values: list[float], period: int) -> list[float]:
+        multiplier = 2 / (period + 1)
+        ema = values[0]
+        series = []
+        for value in values:
+            ema = (value - ema) * multiplier + ema
+            series.append(ema)
+        return series
+
+    def _calculate_volume_change(self, volumes: list[int]) -> float:
+        if len(volumes) < 21:
+            return 0.0
+        average_volume = sum(volumes[-21:-1]) / 20
+        if average_volume == 0:
+            return 0.0
+        return ((volumes[-1] - average_volume) / average_volume) * 100
+
+    def _calculate_volatility(self, closes: list[float]) -> float:
+        returns = [(closes[index] - closes[index - 1]) / closes[index - 1] for index in range(1, len(closes)) if closes[index - 1]]
+        if len(returns) < 2:
+            return 0.25
+        return stdev(returns[-30:]) * (252 ** 0.5)
 
     def _macd_signal(self, payload: dict[str, Any], value: float, signal: float) -> str:
         if not payload:

@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timedelta, timezone
 
 import httpx
 import pytest
@@ -31,6 +32,33 @@ def make_client(payloads: dict[str, dict]) -> PolygonClient:
         retry_count=0,
         http_client=httpx.Client(transport=httpx.MockTransport(handler)),
     )
+
+
+def aggregate_path(ticker: str, days: int = 90) -> str:
+    to_date = datetime.now(timezone.utc).date()
+    from_date = to_date - timedelta(days=days * 2)
+    return f'/v2/aggs/ticker/{ticker}/range/1/day/{from_date.isoformat()}/{to_date.isoformat()}'
+
+
+def aggregate_payload(ticker: str, count: int = 60) -> dict:
+    start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    return {
+        'status': 'OK',
+        'ticker': ticker,
+        'results': [
+            {
+                'o': 100 + index,
+                'h': 102 + index,
+                'l': 99 + index,
+                'c': 101 + index,
+                'v': 1_000_000 + index * 10_000,
+                'vw': 100.5 + index,
+                'n': 50_000 + index,
+                't': int((start + timedelta(days=index)).timestamp() * 1000),
+            }
+            for index in range(count)
+        ],
+    }
 
 
 @pytest.mark.asyncio
@@ -225,6 +253,51 @@ def test_polygon_client_health_check_maps_market_status():
         'market': 'open',
         'server_time': '2026-07-07T13:30:00Z',
     }
+
+
+@pytest.mark.asyncio
+async def test_polygon_market_provider_maps_aggregate_candles():
+    client = make_client({aggregate_path('NVDA', days=60): aggregate_payload('NVDA', count=45)})
+    provider = PolygonMarketDataProvider(client)
+
+    candles = await provider.get_historical_candles('nvda', days=60)
+
+    assert len(candles) == 45
+    assert candles[0].ticker == 'NVDA'
+    assert candles[0].open == 100
+    assert candles[-1].close == 145
+    assert candles[-1].volume == 1_440_000
+
+
+@pytest.mark.asyncio
+async def test_polygon_market_provider_uses_candles_for_custom_indicators():
+    client = make_client(
+        {
+            '/v2/snapshot/locale/us/markets/stocks/tickers/NVDA': {
+                'status': 'OK',
+                'ticker': {
+                    'ticker': 'NVDA',
+                    'day': {'c': 200.5, 'v': 123456},
+                    'prevDay': {'c': 195.0},
+                    'todaysChangePerc': 2.82,
+                },
+            },
+            '/v3/reference/tickers/NVDA': {
+                'status': 'OK',
+                'results': {'market_cap': 4_800_000_000_000},
+            },
+            aggregate_path('NVDA'): aggregate_payload('NVDA', count=60),
+        }
+    )
+    provider = PolygonMarketDataProvider(client)
+
+    snapshot = await provider.get_ticker_snapshot('nvda')
+
+    assert snapshot['technical_indicator_source'] == 'polygon_aggregates'
+    assert snapshot['rsi'] == 100.0
+    assert snapshot['macd_signal'] == 'bullish'
+    assert snapshot['moving_average_signal'] == 'bullish'
+    assert snapshot['volume_change_percent'] > 0
 
 
 @pytest.mark.asyncio
