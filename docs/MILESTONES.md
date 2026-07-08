@@ -45,7 +45,7 @@
 - [x] Add AI explanation service
 
 ## M8: Security Hardening
-- [ ] Auth
+- [x] Auth foundation
 - [ ] Secret manager integration
 - [ ] Dependency scanning
 - [ ] Container scan

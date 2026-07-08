@@ -2,6 +2,9 @@
 
 Base path: `/api/v1`
 
+## User Context
+User-scoped endpoints accept `X-User-Id`. When omitted in local/demo mode, the backend uses `DEFAULT_USER_ID` (`local-demo-user`).
+
 ## Error Response
 Non-2xx responses use a shared envelope:
 

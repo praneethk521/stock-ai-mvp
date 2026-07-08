@@ -28,9 +28,10 @@ MVP scaffold created with FastAPI backend, Next.js frontend, Docker Compose, moc
 - Added agent tool audit log persistence and contract/audit metadata APIs
 - Added agent orchestration service and validated tool execution endpoint
 - Added safe fallback AI explanation service and stock explanation API
+- Added auth foundation with `X-User-Id` user context and user-scoped watchlists/recommendation history
 
 ## Next Codex Task
-Start auth foundation for user-scoped watchlists and recommendation history.
+Add dependency scanning and container scan workflow.
 
 ## Working Rules for Codex
 After every meaningful change:
@@ -42,8 +43,7 @@ After every meaningful change:
 
 ## Known Gaps
 - Local Docker demo still defaults to mock providers until `POLYGON_API_KEY` is configured
-- Watchlist is global/unauthenticated until auth is implemented
-- Auth is not implemented
+- Auth is header-based foundation only; production identity provider is not implemented
 - Polygon plan limits may affect some endpoints; frontend now surfaces provider/API failures with request IDs
 - MCP server is documented but not implemented
 - Frontend placeholders remain for deeper admin/provider workflows

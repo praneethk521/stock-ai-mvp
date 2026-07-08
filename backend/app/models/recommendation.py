@@ -8,6 +8,7 @@ class RecommendationRecord(Base):
     __tablename__ = 'recommendations'
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    user_id: Mapped[str] = mapped_column(String(64), default='local-demo-user', index=True)
     ticker: Mapped[str] = mapped_column(String(12), index=True)
     recommendation: Mapped[str] = mapped_column(String(16))
     trade_horizon: Mapped[str] = mapped_column(String(16))

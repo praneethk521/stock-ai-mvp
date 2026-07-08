@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     database_url: str = Field(default='postgresql+psycopg://stock:stock@localhost:5432/stock_ai')
     redis_url: str = 'redis://localhost:6379/0'
     cors_origins: str = 'http://localhost:3000'
+    default_user_id: str = 'local-demo-user'
     market_data_provider: str = 'mock'
     news_provider: str = 'mock'
     polygon_base_url: str = 'https://api.polygon.io'

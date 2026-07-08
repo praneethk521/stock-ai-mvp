@@ -39,6 +39,7 @@ Build a secure, production-grade stock insights application that combines market
 - Calculate technical indicators from historical candles
 - Generate BUY/SELL/HOLD/WATCH recommendation
 - Generate safe recommendation explanation narratives
+- Scope watchlists and recommendation history by user context
 - Return confidence, risk, explanation, supporting signals, timestamp, model version
 
 ## Non-Functional Requirements

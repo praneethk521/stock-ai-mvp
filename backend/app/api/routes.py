@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.agents.contracts import ToolContract, ToolEnvelope, list_tool_contracts
 from app.agents.orchestrator import AgentToolOrchestrator
+from app.core.auth import get_current_user_id
 from app.core.db import get_db
 from app.core.config import get_settings
 from app.repositories.agent_audit import count_agent_tool_audit_logs, list_agent_tool_audit_logs
@@ -181,10 +182,11 @@ async def recent_recommendations(
     ticker: str | None = None,
     limit: int = 20,
     db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
 ) -> list[RecommendationHistoryItem]:
     symbol = validate_ticker(ticker) if ticker else None
     bounded_limit = min(max(limit, 1), 100)
-    return list_recent_recommendations(db, ticker=symbol, limit=bounded_limit)
+    return list_recent_recommendations(db, ticker=symbol, limit=bounded_limit, user_id=user_id)
 
 
 @router.get('/news/recent', response_model=list[NewsArticleHistoryItem])
@@ -199,20 +201,28 @@ async def recent_news(
 
 
 @router.get('/watchlist', response_model=list[WatchlistItemRead])
-async def watchlist(db: Session = Depends(get_db)) -> list[WatchlistItemRead]:
-    return list_watchlist_items(db)
+async def watchlist(db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)) -> list[WatchlistItemRead]:
+    return list_watchlist_items(db, user_id=user_id)
 
 
 @router.post('/watchlist', response_model=WatchlistItemRead)
-async def add_watchlist_item(item: WatchlistItemCreate, db: Session = Depends(get_db)) -> WatchlistItemRead:
+async def add_watchlist_item(
+    item: WatchlistItemCreate,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+) -> WatchlistItemRead:
     symbol = validate_ticker(item.ticker)
-    return upsert_watchlist_item(db, ticker=symbol, notes=item.notes.strip())
+    return upsert_watchlist_item(db, ticker=symbol, notes=item.notes.strip(), user_id=user_id)
 
 
 @router.delete('/watchlist/{ticker}')
-async def remove_watchlist_item(ticker: str, db: Session = Depends(get_db)) -> dict:
+async def remove_watchlist_item(
+    ticker: str,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+) -> dict:
     symbol = validate_ticker(ticker)
-    deleted = delete_watchlist_item(db, ticker=symbol)
+    deleted = delete_watchlist_item(db, ticker=symbol, user_id=user_id)
     if not deleted:
         raise HTTPException(status_code=404, detail='Watchlist item not found')
     return {'deleted': True, 'ticker': symbol}
@@ -234,13 +244,17 @@ async def stock_candles(ticker: str, days: int = 90) -> list[StockCandle]:
 
 
 @router.get('/stocks/{ticker}/recommendation', response_model=Recommendation, responses=PROVIDER_ERROR_RESPONSES)
-async def stock_recommendation(ticker: str, db: Session = Depends(get_db)) -> Recommendation:
+async def stock_recommendation(
+    ticker: str,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+) -> Recommendation:
     symbol = validate_ticker(ticker)
     snapshot = await market_provider.get_ticker_snapshot(symbol)
     news = await fetch_and_persist_news(symbol, db)
     avg_sentiment = sum(a.sentiment_score for a in news) / len(news) if news else 0.0
     recommendation = engine.generate(ticker=symbol, snapshot=snapshot, sentiment_score=avg_sentiment)
-    create_recommendation_record(db, recommendation)
+    create_recommendation_record(db, recommendation, user_id=user_id)
     return recommendation
 
 

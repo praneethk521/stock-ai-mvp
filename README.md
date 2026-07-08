@@ -72,6 +72,7 @@ Open http://localhost:3000.
 - Agent tool contracts and audit log foundation
 - Agent orchestration endpoint for validated tool execution
 - Safe fallback AI explanation service
+- Header-based auth foundation for user-scoped watchlists and recommendation history
 - Codex-friendly docs/status
 
 ## Next implementation steps

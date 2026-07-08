@@ -141,6 +141,18 @@ def test_recent_recommendations_filters_by_ticker():
     assert [item['ticker'] for item in res.json()] == ['NVDA']
 
 
+def test_recent_recommendations_are_user_scoped():
+    reset_db()
+    client.get('/api/v1/stocks/NVDA/recommendation', headers={'x-user-id': 'user-a'})
+    client.get('/api/v1/stocks/TSLA/recommendation', headers={'x-user-id': 'user-b'})
+
+    user_a = client.get('/api/v1/recommendations/recent', headers={'x-user-id': 'user-a'})
+    user_b = client.get('/api/v1/recommendations/recent', headers={'x-user-id': 'user-b'})
+
+    assert [item['ticker'] for item in user_a.json()] == ['NVDA']
+    assert [item['ticker'] for item in user_b.json()] == ['TSLA']
+
+
 def test_admin_status_includes_persistence_count():
     reset_db()
     client.get('/api/v1/stocks/NVDA/recommendation')
@@ -177,6 +189,28 @@ def test_watchlist_add_list_update_and_delete():
     assert delete_res.json() == {'deleted': True, 'ticker': 'NVDA'}
 
     assert client.get('/api/v1/watchlist').json() == []
+
+
+def test_watchlist_is_user_scoped():
+    reset_db()
+
+    client.post('/api/v1/watchlist', json={'ticker': 'NVDA', 'notes': 'User A'}, headers={'x-user-id': 'user-a'})
+    client.post('/api/v1/watchlist', json={'ticker': 'TSLA', 'notes': 'User B'}, headers={'x-user-id': 'user-b'})
+
+    user_a = client.get('/api/v1/watchlist', headers={'x-user-id': 'user-a'})
+    user_b = client.get('/api/v1/watchlist', headers={'x-user-id': 'user-b'})
+
+    assert [item['ticker'] for item in user_a.json()] == ['NVDA']
+    assert [item['ticker'] for item in user_b.json()] == ['TSLA']
+
+
+def test_rejects_invalid_user_id_header():
+    reset_db()
+
+    res = client.get('/api/v1/watchlist', headers={'x-user-id': 'bad/user'})
+
+    assert res.status_code == 400
+    assert res.json()['error']['message'] == 'Invalid user id'
 
 
 def test_watchlist_rejects_invalid_ticker():
