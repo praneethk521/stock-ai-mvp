@@ -47,6 +47,12 @@ Returns persisted news article history, newest first. `ticker` is optional and `
 ## GET `/admin/status`
 Returns app environment, provider modes, provider health, recommendation model, persisted recommendation count, and persisted news article count.
 
+## GET `/agent/tool-contracts`
+Returns typed agent/MCP tool contract metadata, including input schema, output envelope schema, safety flags, confirmation requirement, and audit event name.
+
+## GET `/agent/audit-log?tool_name=get_large_cap_movers&limit=20`
+Returns recent agent tool audit events. `tool_name` is optional and `limit` is capped at 100.
+
 ## GET `/recommendations/recent?ticker=NVDA&limit=20`
 Returns persisted recommendation history, newest first. `ticker` is optional and `limit` is capped at 100.
 

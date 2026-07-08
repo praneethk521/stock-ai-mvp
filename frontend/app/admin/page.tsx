@@ -13,6 +13,7 @@ type AdminStatus = {
   recommendation_model: string;
   persisted_recommendations: number;
   persisted_news_articles: number;
+  agent_tool_audit_events: number;
   disclaimer: string;
 };
 
@@ -69,6 +70,7 @@ export default async function Page() {
           <h2>Persistence</h2>
           <p>Stored recommendations: {status.persisted_recommendations}</p>
           <p>Stored news articles: {status.persisted_news_articles}</p>
+          <p>Agent audit events: {status.agent_tool_audit_events}</p>
           <p>{status.disclaimer}</p>
         </div>
       </section>

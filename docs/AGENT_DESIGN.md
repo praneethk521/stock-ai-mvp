@@ -33,8 +33,13 @@ Typed tool contracts live in `backend/app/agents/contracts.py`. Each contract de
 - No trade execution in MVP
 - No financial advice language
 - Rate limits
-- Audit logs for agent calls
+- Audit logs for agent calls in `agent_tool_audit_logs`
 - Tool schemas with strict input validation
+
+## Backend Integration
+- `GET /api/v1/agent/tool-contracts` exposes contract metadata for a future MCP server.
+- `GET /api/v1/agent/audit-log` exposes recent tool audit events for operators.
+- Existing Python tool wrappers can record audit events when invoked with a database session.
 
 ## Future MCP Server
 Create a separate `mcp-server/` service exposing the above contracts. It should call backend service APIs instead of duplicating business logic, wrap responses in the shared tool envelope, and emit audit events named by each contract.

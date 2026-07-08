@@ -25,9 +25,10 @@ MVP scaffold created with FastAPI backend, Next.js frontend, Docker Compose, moc
 - Added GitHub Actions CI for backend tests/lint and frontend lint/build
 - Added news article persistence, dedupe, recent-news API, and Admin cache visibility
 - Added typed MCP/agent tool contract registry with safety metadata
+- Added agent tool audit log persistence and contract/audit metadata APIs
 
 ## Next Codex Task
-Add agent tool audit logging and expose contract metadata for future MCP server integration.
+Add first agent orchestration service that executes registered tools through validated contracts.
 
 ## Working Rules for Codex
 After every meaningful change:

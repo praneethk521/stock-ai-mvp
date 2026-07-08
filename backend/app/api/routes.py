@@ -3,11 +3,14 @@ import re
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.agents.contracts import ToolContract, list_tool_contracts
 from app.core.db import get_db
 from app.core.config import get_settings
+from app.repositories.agent_audit import count_agent_tool_audit_logs, list_agent_tool_audit_logs
 from app.repositories.news import count_news_articles, list_recent_news_articles, persist_news_articles
 from app.repositories.recommendations import count_recommendations, create_recommendation_record, list_recent_recommendations
 from app.repositories.watchlist import delete_watchlist_item, list_watchlist_items, upsert_watchlist_item
+from app.schemas.agent import AgentToolAuditItem
 from app.schemas.market import ApiErrorResponse, NewsArticle, NewsArticleHistoryItem, NewsSentimentItem, Recommendation, RecommendationHistoryItem, StockCandle, WatchlistItemCreate, WatchlistItemRead
 from app.services.factory import get_market_provider, get_news_provider
 from app.services.recommendation_engine import RecommendationEngine
@@ -130,8 +133,24 @@ async def admin_status(db: Session = Depends(get_db)) -> dict:
         'recommendation_model': engine.model_version,
         'persisted_recommendations': count_recommendations(db),
         'persisted_news_articles': count_news_articles(db),
+        'agent_tool_audit_events': count_agent_tool_audit_logs(db),
         'disclaimer': 'Informational only. Not financial advice.',
     }
+
+
+@router.get('/agent/tool-contracts', response_model=list[ToolContract])
+async def agent_tool_contracts() -> list[ToolContract]:
+    return list_tool_contracts()
+
+
+@router.get('/agent/audit-log', response_model=list[AgentToolAuditItem])
+async def agent_audit_log(
+    tool_name: str | None = None,
+    limit: int = 20,
+    db: Session = Depends(get_db),
+) -> list[AgentToolAuditItem]:
+    bounded_limit = min(max(limit, 1), 100)
+    return list_agent_tool_audit_logs(db, tool_name=tool_name, limit=bounded_limit)
 
 
 @router.get('/recommendations/recent', response_model=list[RecommendationHistoryItem])

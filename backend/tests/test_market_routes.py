@@ -1,10 +1,13 @@
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.agents.tools import get_large_cap_movers_tool
 from app.core.db import Base, get_db
 from app.main import app
+from app.models.agent import AgentToolAuditLog
 from app.models.news import NewsArticleRecord
 from app.models.recommendation import RecommendationRecord
 
@@ -205,6 +208,57 @@ def test_openapi_documents_standard_error_schema():
     assert '500' in top_movers_responses
     assert '502' in top_movers_responses
     assert top_movers_responses['502']['content']['application/json']['schema']['$ref'].endswith('/ApiErrorResponse')
+
+
+def test_agent_tool_contracts_endpoint_returns_contract_metadata():
+    reset_db()
+
+    res = client.get('/api/v1/agent/tool-contracts')
+
+    assert res.status_code == 200
+    contracts = res.json()
+    names = {item['name'] for item in contracts}
+    assert 'get_large_cap_movers' in names
+    assert 'generate_recommendation' in names
+    assert all(item['audit_event'].startswith('agent.tool.') for item in contracts)
+
+
+def test_agent_audit_log_endpoint_returns_recent_events():
+    reset_db()
+    with TestingSessionLocal() as db:
+        db.add(
+            AgentToolAuditLog(
+                tool_name='get_large_cap_movers',
+                audit_event='agent.tool.get_large_cap_movers',
+                ok=True,
+                input_payload={'min_market_cap': 50_000_000_000},
+                output_summary={'item_count': 10},
+                duration_ms=5,
+            )
+        )
+        db.commit()
+
+    res = client.get('/api/v1/agent/audit-log')
+
+    assert res.status_code == 200
+    items = res.json()
+    assert len(items) == 1
+    assert items[0]['tool_name'] == 'get_large_cap_movers'
+    assert items[0]['ok'] is True
+
+
+@pytest.mark.asyncio
+async def test_agent_tool_wrapper_records_audit_log():
+    reset_db()
+    with TestingSessionLocal() as db:
+        result = await get_large_cap_movers_tool(db=db)
+
+    assert len(result['items']) == 10
+    with TestingSessionLocal() as db:
+        audit = db.query(AgentToolAuditLog).one()
+        assert audit.tool_name == 'get_large_cap_movers'
+        assert audit.ok is True
+        assert audit.output_summary == {'item_count': 10}
 
 
 def test_news_sentiment_returns_default_tracked_tickers():

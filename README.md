@@ -69,6 +69,7 @@ Open http://localhost:3000.
 - Standardized API error responses and frontend provider failure states
 - OpenAPI error response schemas for client integration
 - GitHub Actions CI for backend tests/lint and frontend lint/build
+- Agent tool contracts and audit log foundation
 - Codex-friendly docs/status
 
 ## Next implementation steps
