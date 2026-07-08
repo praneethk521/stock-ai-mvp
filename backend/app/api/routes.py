@@ -5,9 +5,10 @@ from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.core.config import get_settings
+from app.repositories.news import count_news_articles, list_recent_news_articles, persist_news_articles
 from app.repositories.recommendations import count_recommendations, create_recommendation_record, list_recent_recommendations
 from app.repositories.watchlist import delete_watchlist_item, list_watchlist_items, upsert_watchlist_item
-from app.schemas.market import ApiErrorResponse, NewsArticle, NewsSentimentItem, Recommendation, RecommendationHistoryItem, StockCandle, WatchlistItemCreate, WatchlistItemRead
+from app.schemas.market import ApiErrorResponse, NewsArticle, NewsArticleHistoryItem, NewsSentimentItem, Recommendation, RecommendationHistoryItem, StockCandle, WatchlistItemCreate, WatchlistItemRead
 from app.services.factory import get_market_provider, get_news_provider
 from app.services.recommendation_engine import RecommendationEngine
 
@@ -65,6 +66,12 @@ def provider_health(provider: object, name: str) -> dict:
     return {'provider': name, 'ok': True, 'mode': 'mock'}
 
 
+async def fetch_and_persist_news(symbol: str, db: Session) -> list[NewsArticle]:
+    articles: list[NewsArticle] = await news_provider.get_company_news(symbol)
+    persist_news_articles(db, articles, provider=settings.news_provider)
+    return articles
+
+
 @router.get('/health')
 async def health() -> dict:
     return {'status': 'ok'}
@@ -93,12 +100,12 @@ async def top_market_movers(direction: str = 'gainers', limit: int = 10) -> dict
 
 
 @router.get('/news/sentiment', response_model=list[NewsSentimentItem], responses=PROVIDER_ERROR_RESPONSES)
-async def news_sentiment(tickers: str | None = None) -> list[NewsSentimentItem]:
+async def news_sentiment(tickers: str | None = None, db: Session = Depends(get_db)) -> list[NewsSentimentItem]:
     symbols = [validate_ticker(item.strip()) for item in tickers.split(',') if item.strip()] if tickers else DEFAULT_SENTIMENT_TICKERS
     unique_symbols = list(dict.fromkeys(symbols))[:20]
     results: list[NewsSentimentItem] = []
     for symbol in unique_symbols:
-        articles: list[NewsArticle] = await news_provider.get_company_news(symbol)
+        articles = await fetch_and_persist_news(symbol, db)
         avg_score = sum(article.sentiment_score for article in articles) / len(articles) if articles else 0.0
         results.append(
             NewsSentimentItem(
@@ -122,6 +129,7 @@ async def admin_status(db: Session = Depends(get_db)) -> dict:
         'news_provider_health': provider_health(news_provider, settings.news_provider),
         'recommendation_model': engine.model_version,
         'persisted_recommendations': count_recommendations(db),
+        'persisted_news_articles': count_news_articles(db),
         'disclaimer': 'Informational only. Not financial advice.',
     }
 
@@ -135,6 +143,17 @@ async def recent_recommendations(
     symbol = validate_ticker(ticker) if ticker else None
     bounded_limit = min(max(limit, 1), 100)
     return list_recent_recommendations(db, ticker=symbol, limit=bounded_limit)
+
+
+@router.get('/news/recent', response_model=list[NewsArticleHistoryItem])
+async def recent_news(
+    ticker: str | None = None,
+    limit: int = 20,
+    db: Session = Depends(get_db),
+) -> list[NewsArticleHistoryItem]:
+    symbol = validate_ticker(ticker) if ticker else None
+    bounded_limit = min(max(limit, 1), 100)
+    return list_recent_news_articles(db, ticker=symbol, limit=bounded_limit)
 
 
 @router.get('/watchlist', response_model=list[WatchlistItemRead])
@@ -158,10 +177,10 @@ async def remove_watchlist_item(ticker: str, db: Session = Depends(get_db)) -> d
 
 
 @router.get('/stocks/{ticker}', responses=PROVIDER_ERROR_RESPONSES)
-async def stock_details(ticker: str) -> dict:
+async def stock_details(ticker: str, db: Session = Depends(get_db)) -> dict:
     symbol = validate_ticker(ticker)
     snapshot = await market_provider.get_ticker_snapshot(symbol)
-    news = await news_provider.get_company_news(symbol)
+    news = await fetch_and_persist_news(symbol, db)
     return {'snapshot': snapshot, 'news': news}
 
 
@@ -176,7 +195,7 @@ async def stock_candles(ticker: str, days: int = 90) -> list[StockCandle]:
 async def stock_recommendation(ticker: str, db: Session = Depends(get_db)) -> Recommendation:
     symbol = validate_ticker(ticker)
     snapshot = await market_provider.get_ticker_snapshot(symbol)
-    news = await news_provider.get_company_news(symbol)
+    news = await fetch_and_persist_news(symbol, db)
     avg_sentiment = sum(a.sentiment_score for a in news) / len(news) if news else 0.0
     recommendation = engine.generate(ticker=symbol, snapshot=snapshot, sentiment_score=avg_sentiment)
     create_recommendation_record(db, recommendation)

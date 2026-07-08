@@ -55,6 +55,20 @@ class NewsSentimentItem(BaseModel):
     articles: list[NewsArticle]
 
 
+class NewsArticleHistoryItem(BaseModel):
+    id: int
+    ticker: str
+    title: str
+    source: str
+    url: str
+    published_at: datetime
+    sentiment: str
+    sentiment_score: float
+    provider: str
+    first_seen_at: datetime
+    last_seen_at: datetime
+
+
 class Recommendation(BaseModel):
     ticker: str
     recommendation: str

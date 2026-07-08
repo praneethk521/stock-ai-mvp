@@ -23,9 +23,10 @@ MVP scaffold created with FastAPI backend, Next.js frontend, Docker Compose, moc
 - Added standardized API error envelope, request IDs, and frontend provider failure states
 - Added OpenAPI error response schemas and provider-route response metadata
 - Added GitHub Actions CI for backend tests/lint and frontend lint/build
+- Added news article persistence, dedupe, recent-news API, and Admin cache visibility
 
 ## Next Codex Task
-Add news article persistence/cache tables so provider news can be deduplicated and audited.
+Define MCP tool contracts for market, news, recommendation, and watchlist operations.
 
 ## Working Rules for Codex
 After every meaningful change:

@@ -5,6 +5,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.core.db import Base, get_db
 from app.main import app
+from app.models.news import NewsArticleRecord
 from app.models.recommendation import RecommendationRecord
 
 
@@ -134,6 +135,7 @@ def test_admin_status_includes_persistence_count():
     assert data['market_provider_health']['ok'] is True
     assert data['news_provider_health']['ok'] is True
     assert data['persisted_recommendations'] == 1
+    assert data['persisted_news_articles'] == 2
 
 
 def test_watchlist_add_list_update_and_delete():
@@ -217,6 +219,9 @@ def test_news_sentiment_returns_default_tracked_tickers():
     assert items[0]['article_count'] >= 1
     assert items[0]['sentiment'] in {'positive', 'neutral', 'negative'}
 
+    with TestingSessionLocal() as db:
+        assert db.query(NewsArticleRecord).count() >= 10
+
 
 def test_news_sentiment_filters_tickers_and_deduplicates():
     reset_db()
@@ -225,6 +230,27 @@ def test_news_sentiment_filters_tickers_and_deduplicates():
 
     assert res.status_code == 200
     assert [item['ticker'] for item in res.json()] == ['TSLA', 'NVDA']
+
+    repeat_res = client.get('/api/v1/news/sentiment?tickers=TSLA,NVDA')
+    assert repeat_res.status_code == 200
+
+    with TestingSessionLocal() as db:
+        assert db.query(NewsArticleRecord).count() == 4
+
+
+def test_recent_news_returns_persisted_articles():
+    reset_db()
+    client.get('/api/v1/news/sentiment?tickers=NVDA,TSLA')
+
+    res = client.get('/api/v1/news/recent?ticker=NVDA&limit=10')
+
+    assert res.status_code == 200
+    items = res.json()
+    assert len(items) == 2
+    assert {item['ticker'] for item in items} == {'NVDA'}
+    assert all(item['provider'] == 'mock' for item in items)
+    assert all(item['first_seen_at'] for item in items)
+    assert all(item['last_seen_at'] for item in items)
 
 
 def test_news_sentiment_rejects_invalid_ticker():

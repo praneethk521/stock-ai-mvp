@@ -12,6 +12,7 @@ type AdminStatus = {
   news_provider_health: { ok: boolean; provider: string; market?: string; mode?: string; error?: string };
   recommendation_model: string;
   persisted_recommendations: number;
+  persisted_news_articles: number;
   disclaimer: string;
 };
 
@@ -26,13 +27,25 @@ type RecommendationHistoryItem = {
   model_version: string;
 };
 
+type NewsArticleHistoryItem = {
+  id: number;
+  ticker: string;
+  title: string;
+  source: string;
+  published_at: string;
+  sentiment: string;
+  provider: string;
+};
+
 export default async function Page() {
   let status: AdminStatus;
   let recent: RecommendationHistoryItem[];
+  let news: NewsArticleHistoryItem[];
   try {
-    [status, recent] = await Promise.all([
+    [status, recent, news] = await Promise.all([
       apiGet<AdminStatus>('/admin/status'),
       apiGet<RecommendationHistoryItem[]>('/recommendations/recent?limit=5'),
+      apiGet<NewsArticleHistoryItem[]>('/news/recent?limit=5'),
     ]);
   } catch (error) {
     return <ErrorState title="Admin status unavailable" error={error} />;
@@ -55,6 +68,7 @@ export default async function Page() {
         <div className="card">
           <h2>Persistence</h2>
           <p>Stored recommendations: {status.persisted_recommendations}</p>
+          <p>Stored news articles: {status.persisted_news_articles}</p>
           <p>{status.disclaimer}</p>
         </div>
       </section>
@@ -70,6 +84,23 @@ export default async function Page() {
                 <span>{item.recommendation}</span>
                 <span>{item.confidence_score.toFixed(1)}% confidence</span>
                 <span>{new Date(item.generated_at).toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+      <section className="card">
+        <h2>Recent News Cache</h2>
+        {news.length === 0 ? (
+          <p>No news articles cached yet.</p>
+        ) : (
+          <div className="table">
+            {news.map(item => (
+              <div className="row" key={item.id}>
+                <Link href={`/stock/${encodeURIComponent(item.ticker)}`}>{item.ticker}</Link>
+                <span>{item.sentiment}</span>
+                <span>{item.provider} / {item.source}</span>
+                <span>{new Date(item.published_at).toLocaleString()}</span>
               </div>
             ))}
           </div>

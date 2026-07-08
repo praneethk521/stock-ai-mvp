@@ -39,10 +39,13 @@ Returns stocks above market-cap threshold with price movement.
 Returns all-market top gainers or losers from the active provider. `direction` must be `gainers` or `losers`; `limit` is capped at 50.
 
 ## GET `/news/sentiment?tickers=NVDA,MSFT`
-Returns average sentiment and mock news articles by ticker. `tickers` is optional; when omitted, the tracked mega-cap universe is used.
+Returns average sentiment and news articles by ticker, and persists fetched articles for deduped audit history. `tickers` is optional; when omitted, the tracked mega-cap universe is used.
+
+## GET `/news/recent?ticker=NVDA&limit=20`
+Returns persisted news article history, newest first. `ticker` is optional and `limit` is capped at 100.
 
 ## GET `/admin/status`
-Returns app environment, provider modes, provider health, recommendation model, and persisted recommendation count.
+Returns app environment, provider modes, provider health, recommendation model, persisted recommendation count, and persisted news article count.
 
 ## GET `/recommendations/recent?ticker=NVDA&limit=20`
 Returns persisted recommendation history, newest first. `ticker` is optional and `limit` is capped at 100.

@@ -34,6 +34,7 @@ Build a secure, production-grade stock insights application that combines market
 - Fetch stock snapshot
 - Fetch historical OHLCV candles
 - Fetch news by ticker
+- Persist and deduplicate provider news articles for auditability
 - Score sentiment
 - Calculate technical indicators from historical candles
 - Generate BUY/SELL/HOLD/WATCH recommendation

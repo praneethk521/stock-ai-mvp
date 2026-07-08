@@ -17,7 +17,7 @@
 - [x] Recommendation model stub
 - [x] Alembic migration setup
 - [x] Watchlist tables
-- [ ] News article tables
+- [x] News article tables
 
 ## M4: Provider Abstractions
 - [x] Market provider interface
