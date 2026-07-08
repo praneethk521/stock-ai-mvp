@@ -42,7 +42,7 @@
 ## M7: Agentic AI / MCP Layer
 - [x] Define MCP tool contracts
 - [x] Add agent orchestration service
-- [ ] Add AI explanation service
+- [x] Add AI explanation service
 
 ## M8: Security Hardening
 - [ ] Auth

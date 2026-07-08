@@ -101,6 +101,21 @@ def test_stock_candles_returns_bounded_history():
     assert {'open', 'high', 'low', 'close', 'volume'} <= set(candles[0].keys())
 
 
+def test_stock_explanation_returns_safe_fallback_narrative():
+    reset_db()
+
+    res = client.get('/api/v1/stocks/NVDA/explanation')
+
+    assert res.status_code == 200
+    data = res.json()
+    assert data['ticker'] == 'NVDA'
+    assert data['provider'] == 'rules-fallback'
+    assert data['model_version'] == 'explanation-fallback-v1'
+    assert data['signal_summary']
+    assert data['risk_notes']
+    assert data['disclaimer'] == 'Informational only. Not financial advice.'
+
+
 def test_recent_recommendations_returns_persisted_history():
     reset_db()
     client.get('/api/v1/stocks/NVDA/recommendation')

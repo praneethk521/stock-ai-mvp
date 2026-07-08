@@ -27,9 +27,10 @@ MVP scaffold created with FastAPI backend, Next.js frontend, Docker Compose, moc
 - Added typed MCP/agent tool contract registry with safety metadata
 - Added agent tool audit log persistence and contract/audit metadata APIs
 - Added agent orchestration service and validated tool execution endpoint
+- Added safe fallback AI explanation service and stock explanation API
 
 ## Next Codex Task
-Add AI explanation service for recommendation narratives with safe fallback behavior.
+Start auth foundation for user-scoped watchlists and recommendation history.
 
 ## Working Rules for Codex
 After every meaningful change:

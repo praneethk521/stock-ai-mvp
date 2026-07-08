@@ -38,6 +38,7 @@ Build a secure, production-grade stock insights application that combines market
 - Score sentiment
 - Calculate technical indicators from historical candles
 - Generate BUY/SELL/HOLD/WATCH recommendation
+- Generate safe recommendation explanation narratives
 - Return confidence, risk, explanation, supporting signals, timestamp, model version
 
 ## Non-Functional Requirements

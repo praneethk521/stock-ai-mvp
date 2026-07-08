@@ -12,7 +12,8 @@ from app.repositories.news import count_news_articles, list_recent_news_articles
 from app.repositories.recommendations import count_recommendations, create_recommendation_record, list_recent_recommendations
 from app.repositories.watchlist import delete_watchlist_item, list_watchlist_items, upsert_watchlist_item
 from app.schemas.agent import AgentToolAuditItem, AgentToolExecutionRequest
-from app.schemas.market import ApiErrorResponse, NewsArticle, NewsArticleHistoryItem, NewsSentimentItem, Recommendation, RecommendationHistoryItem, StockCandle, WatchlistItemCreate, WatchlistItemRead
+from app.schemas.market import ApiErrorResponse, ExplanationResponse, NewsArticle, NewsArticleHistoryItem, NewsSentimentItem, Recommendation, RecommendationHistoryItem, StockCandle, WatchlistItemCreate, WatchlistItemRead
+from app.services.explanation_service import ExplanationService
 from app.services.factory import get_market_provider, get_news_provider
 from app.services.recommendation_engine import RecommendationEngine
 
@@ -28,6 +29,7 @@ settings = get_settings()
 market_provider = get_market_provider()
 news_provider = get_news_provider()
 engine = RecommendationEngine()
+explanation_service = ExplanationService()
 agent_orchestrator = AgentToolOrchestrator(
     market_provider=market_provider,
     news_provider=news_provider,
@@ -240,3 +242,13 @@ async def stock_recommendation(ticker: str, db: Session = Depends(get_db)) -> Re
     recommendation = engine.generate(ticker=symbol, snapshot=snapshot, sentiment_score=avg_sentiment)
     create_recommendation_record(db, recommendation)
     return recommendation
+
+
+@router.get('/stocks/{ticker}/explanation', response_model=ExplanationResponse, responses=PROVIDER_ERROR_RESPONSES)
+async def stock_explanation(ticker: str, db: Session = Depends(get_db)) -> ExplanationResponse:
+    symbol = validate_ticker(ticker)
+    snapshot = await market_provider.get_ticker_snapshot(symbol)
+    news = await fetch_and_persist_news(symbol, db)
+    avg_sentiment = sum(article.sentiment_score for article in news) / len(news) if news else 0.0
+    recommendation = engine.generate(ticker=symbol, snapshot=snapshot, sentiment_score=avg_sentiment)
+    return explanation_service.generate(symbol, recommendation, snapshot, avg_sentiment)

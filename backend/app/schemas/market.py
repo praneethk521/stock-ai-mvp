@@ -82,6 +82,18 @@ class Recommendation(BaseModel):
     disclaimer: str = 'Informational only. Not financial advice.'
 
 
+class ExplanationResponse(BaseModel):
+    ticker: str
+    recommendation: str
+    narrative: str
+    signal_summary: list[str]
+    risk_notes: list[str]
+    generated_at: datetime
+    model_version: str
+    provider: str
+    disclaimer: str = 'Informational only. Not financial advice.'
+
+
 class RecommendationHistoryItem(BaseModel):
     id: int
     ticker: str

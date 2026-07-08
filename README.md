@@ -71,6 +71,7 @@ Open http://localhost:3000.
 - GitHub Actions CI for backend tests/lint and frontend lint/build
 - Agent tool contracts and audit log foundation
 - Agent orchestration endpoint for validated tool execution
+- Safe fallback AI explanation service
 - Codex-friendly docs/status
 
 ## Next implementation steps

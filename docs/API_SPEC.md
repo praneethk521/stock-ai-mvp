@@ -93,3 +93,6 @@ Generates, persists, and returns recommendation object:
 - timestamp
 - model_version
 - disclaimer
+
+## GET `/stocks/{ticker}/explanation`
+Generates a safe fallback narrative for the current recommendation signals without trade execution or financial-advice language.
