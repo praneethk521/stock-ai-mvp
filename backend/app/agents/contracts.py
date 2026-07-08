@@ -94,6 +94,21 @@ TOOL_CONTRACTS = [
     ),
 ]
 
+TOOL_INPUT_MODELS: dict[str, type[BaseModel]] = {
+    'get_market_overview': EmptyInput,
+    'get_large_cap_movers': LargeCapMoversInput,
+    'get_top_market_movers': TopMoversInput,
+    'get_ticker_snapshot': TickerInput,
+    'get_historical_candles': CandlesInput,
+    'get_company_news': TickerInput,
+    'get_recent_news': RecentItemsInput,
+    'generate_recommendation': TickerInput,
+    'list_recent_recommendations': RecentItemsInput,
+    'list_watchlist': EmptyInput,
+    'upsert_watchlist_item': WatchlistUpsertInput,
+    'delete_watchlist_item': TickerInput,
+}
+
 
 def list_tool_contracts() -> list[ToolContract]:
     return TOOL_CONTRACTS
@@ -101,3 +116,7 @@ def list_tool_contracts() -> list[ToolContract]:
 
 def get_tool_contract(name: str) -> ToolContract | None:
     return next((contract for contract in TOOL_CONTRACTS if contract.name == name), None)
+
+
+def get_tool_input_model(name: str) -> type[BaseModel] | None:
+    return TOOL_INPUT_MODELS.get(name)

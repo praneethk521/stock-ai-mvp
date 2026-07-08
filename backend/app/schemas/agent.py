@@ -14,3 +14,8 @@ class AgentToolAuditItem(BaseModel):
     error: dict[str, Any] | None = None
     duration_ms: int
     created_at: datetime
+
+
+class AgentToolExecutionRequest(BaseModel):
+    input: dict[str, Any] | None = None
+    confirmed: bool = False

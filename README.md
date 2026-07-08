@@ -70,6 +70,7 @@ Open http://localhost:3000.
 - OpenAPI error response schemas for client integration
 - GitHub Actions CI for backend tests/lint and frontend lint/build
 - Agent tool contracts and audit log foundation
+- Agent orchestration endpoint for validated tool execution
 - Codex-friendly docs/status
 
 ## Next implementation steps

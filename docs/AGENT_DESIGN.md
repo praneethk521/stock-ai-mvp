@@ -39,6 +39,7 @@ Typed tool contracts live in `backend/app/agents/contracts.py`. Each contract de
 ## Backend Integration
 - `GET /api/v1/agent/tool-contracts` exposes contract metadata for a future MCP server.
 - `GET /api/v1/agent/audit-log` exposes recent tool audit events for operators.
+- `POST /api/v1/agent/tools/{tool_name}/execute` validates and executes registered tools through the orchestration service.
 - Existing Python tool wrappers can record audit events when invoked with a database session.
 
 ## Future MCP Server

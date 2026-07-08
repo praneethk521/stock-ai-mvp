@@ -247,6 +247,49 @@ def test_agent_audit_log_endpoint_returns_recent_events():
     assert items[0]['ok'] is True
 
 
+def test_agent_tool_execute_runs_registered_tool_and_audits():
+    reset_db()
+
+    res = client.post('/api/v1/agent/tools/get_large_cap_movers/execute', json={'input': {'min_market_cap': 50_000_000_000}})
+
+    assert res.status_code == 200
+    data = res.json()
+    assert data['ok'] is True
+    assert len(data['data']['items']) == 10
+
+    audit_res = client.get('/api/v1/agent/audit-log?tool_name=get_large_cap_movers')
+    assert audit_res.status_code == 200
+    audit = audit_res.json()[0]
+    assert audit['ok'] is True
+    assert audit['output_summary'] == {'item_count': 10}
+
+
+def test_agent_tool_execute_requires_confirmation_for_write_tools():
+    reset_db()
+
+    res = client.post('/api/v1/agent/tools/upsert_watchlist_item/execute', json={'input': {'ticker': 'NVDA', 'notes': 'AI'}})
+
+    assert res.status_code == 200
+    body = res.json()
+    assert body['ok'] is False
+    assert body['error']['code'] == 'confirmation_required'
+
+
+def test_agent_tool_execute_confirmed_write_tool_updates_watchlist():
+    reset_db()
+
+    res = client.post(
+        '/api/v1/agent/tools/upsert_watchlist_item/execute',
+        json={'input': {'ticker': 'NVDA', 'notes': 'AI leader'}, 'confirmed': True},
+    )
+
+    assert res.status_code == 200
+    body = res.json()
+    assert body['ok'] is True
+    assert body['data']['ticker'] == 'NVDA'
+    assert client.get('/api/v1/watchlist').json()[0]['notes'] == 'AI leader'
+
+
 @pytest.mark.asyncio
 async def test_agent_tool_wrapper_records_audit_log():
     reset_db()

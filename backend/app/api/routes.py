@@ -3,14 +3,15 @@ import re
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.agents.contracts import ToolContract, list_tool_contracts
+from app.agents.contracts import ToolContract, ToolEnvelope, list_tool_contracts
+from app.agents.orchestrator import AgentToolOrchestrator
 from app.core.db import get_db
 from app.core.config import get_settings
 from app.repositories.agent_audit import count_agent_tool_audit_logs, list_agent_tool_audit_logs
 from app.repositories.news import count_news_articles, list_recent_news_articles, persist_news_articles
 from app.repositories.recommendations import count_recommendations, create_recommendation_record, list_recent_recommendations
 from app.repositories.watchlist import delete_watchlist_item, list_watchlist_items, upsert_watchlist_item
-from app.schemas.agent import AgentToolAuditItem
+from app.schemas.agent import AgentToolAuditItem, AgentToolExecutionRequest
 from app.schemas.market import ApiErrorResponse, NewsArticle, NewsArticleHistoryItem, NewsSentimentItem, Recommendation, RecommendationHistoryItem, StockCandle, WatchlistItemCreate, WatchlistItemRead
 from app.services.factory import get_market_provider, get_news_provider
 from app.services.recommendation_engine import RecommendationEngine
@@ -27,6 +28,12 @@ settings = get_settings()
 market_provider = get_market_provider()
 news_provider = get_news_provider()
 engine = RecommendationEngine()
+agent_orchestrator = AgentToolOrchestrator(
+    market_provider=market_provider,
+    news_provider=news_provider,
+    recommendation_engine=engine,
+    news_provider_name=settings.news_provider,
+)
 TICKER_PATTERN = re.compile(r'^[A-Za-z0-9.\-]{1,12}$')
 DEFAULT_SENTIMENT_TICKERS = ['NVDA', 'TSLA', 'AAPL', 'MSFT', 'AMZN', 'META', 'AVGO', 'TSM', 'GOOG', 'BRK.B']
 TOP_MOVER_DIRECTIONS = {'gainers', 'losers'}
@@ -151,6 +158,20 @@ async def agent_audit_log(
 ) -> list[AgentToolAuditItem]:
     bounded_limit = min(max(limit, 1), 100)
     return list_agent_tool_audit_logs(db, tool_name=tool_name, limit=bounded_limit)
+
+
+@router.post('/agent/tools/{tool_name}/execute', response_model=ToolEnvelope)
+async def execute_agent_tool(
+    tool_name: str,
+    request: AgentToolExecutionRequest,
+    db: Session = Depends(get_db),
+) -> ToolEnvelope:
+    return await agent_orchestrator.execute(
+        db,
+        tool_name=tool_name,
+        input_payload=request.input,
+        confirmed=request.confirmed,
+    )
 
 
 @router.get('/recommendations/recent', response_model=list[RecommendationHistoryItem])

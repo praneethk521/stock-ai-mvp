@@ -53,6 +53,13 @@ Returns typed agent/MCP tool contract metadata, including input schema, output e
 ## GET `/agent/audit-log?tool_name=get_large_cap_movers&limit=20`
 Returns recent agent tool audit events. `tool_name` is optional and `limit` is capped at 100.
 
+## POST `/agent/tools/{tool_name}/execute`
+Executes a registered agent tool through the contract validator and returns the shared tool envelope.
+
+Body:
+- `input`: tool-specific object matching the contract schema
+- `confirmed`: required as `true` for write tools such as watchlist updates
+
 ## GET `/recommendations/recent?ticker=NVDA&limit=20`
 Returns persisted recommendation history, newest first. `ticker` is optional and `limit` is capped at 100.
 
