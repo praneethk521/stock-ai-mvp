@@ -40,7 +40,7 @@
 - [x] News sentiment UI
 
 ## M7: Agentic AI / MCP Layer
-- [ ] Define MCP tool contracts
+- [x] Define MCP tool contracts
 - [ ] Add agent orchestration service
 - [ ] Add AI explanation service
 
