@@ -11,14 +11,16 @@
 Run:
 ```bash
 cd backend
-ruff check app tests
-pytest
+python -m ruff check app tests
+python -m pytest
 ```
 
 ## Frontend
 Run:
 ```bash
 cd frontend
-npm install
-npm run build
+corepack enable
+pnpm install --frozen-lockfile
+pnpm run lint
+pnpm run build
 ```

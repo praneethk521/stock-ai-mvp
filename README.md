@@ -68,6 +68,7 @@ Open http://localhost:3000.
 - Polygon provider adapter with health, Redis-backed caching, retry, request logging, top movers, aggregate candles, and custom indicator calculations
 - Standardized API error responses and frontend provider failure states
 - OpenAPI error response schemas for client integration
+- GitHub Actions CI for backend tests/lint and frontend lint/build
 - Codex-friendly docs/status
 
 ## Next implementation steps
