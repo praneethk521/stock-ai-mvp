@@ -9,17 +9,27 @@
 - Non-root backend Docker user
 - SQLAlchemy ORM to reduce SQL injection risk
 - CI lint/test workflow
+- GitHub Actions dependency scan with pip-audit and pnpm audit
+- GitHub Actions container image scan with Trivy for backend and frontend images
+- User-scoped watchlist and recommendation history access through request user context
+- Agent tool execution audit logs
 
 ## Production Requirements
 - Authentication and authorization
 - AWS Secrets Manager or equivalent
 - HTTPS only
 - Centralized logging with PII/secrets redaction
-- Dependency scanning
-- Container image scanning
+- Dependency scanning with release/PR gates
+- Container image scanning with release/PR gates
 - WAF/rate limiting
 - Audit logs for AI agent actions
 - Respect API terms, robots.txt, and licensed data restrictions
+
+## Security Automation
+- `.github/workflows/security.yml` runs backend dependency audits with `pip-audit`.
+- The same workflow runs frontend dependency audits with `pnpm audit --audit-level high`.
+- Backend and frontend Docker images are built and scanned with Trivy for high/critical OS and library vulnerabilities.
+- The workflow also runs weekly so new advisories are detected even when application code does not change.
 
 ## Explicit Non-Goals
 - No automated trade execution in MVP

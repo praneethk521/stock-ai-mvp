@@ -47,8 +47,8 @@
 ## M8: Security Hardening
 - [x] Auth foundation
 - [ ] Secret manager integration
-- [ ] Dependency scanning
-- [ ] Container scan
+- [x] Dependency scanning
+- [x] Container scan
 
 ## M9: Deployment Readiness
 - [ ] AWS architecture

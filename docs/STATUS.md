@@ -1,7 +1,7 @@
 # Project Status
 
 ## Current State
-MVP scaffold created with FastAPI backend, Next.js frontend, Docker Compose, mock providers, and rules-based recommendation engine.
+Production-grade stock intelligence build in progress with FastAPI backend, Next.js frontend, Docker Compose local demo, Polygon-ready providers, persisted user-scoped data, agent tool foundations, and security scanning.
 
 ## Last Completed
 - Created project structure
@@ -29,9 +29,10 @@ MVP scaffold created with FastAPI backend, Next.js frontend, Docker Compose, moc
 - Added agent orchestration service and validated tool execution endpoint
 - Added safe fallback AI explanation service and stock explanation API
 - Added auth foundation with `X-User-Id` user context and user-scoped watchlists/recommendation history
+- Added dependency and container scanning workflow; upgraded backend/frontend vulnerable dependencies
 
 ## Next Codex Task
-Add dependency scanning and container scan workflow.
+Add production secret manager integration plan and runtime configuration adapter.
 
 ## Working Rules for Codex
 After every meaningful change:
@@ -44,6 +45,7 @@ After every meaningful change:
 ## Known Gaps
 - Local Docker demo still defaults to mock providers until `POLYGON_API_KEY` is configured
 - Auth is header-based foundation only; production identity provider is not implemented
+- Secret manager integration is not implemented; local env files remain the only runtime secret source
 - Polygon plan limits may affect some endpoints; frontend now surfaces provider/API failures with request IDs
 - MCP server is documented but not implemented
 - Frontend placeholders remain for deeper admin/provider workflows

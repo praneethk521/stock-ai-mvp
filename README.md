@@ -1,4 +1,4 @@
-# Stock AI MVP
+# Stock AI Platform
 
 Production-minded stock market insights application for market movers, news sentiment, watchlists, and rules-based recommendations.
 
@@ -69,6 +69,7 @@ Open http://localhost:3000.
 - Standardized API error responses and frontend provider failure states
 - OpenAPI error response schemas for client integration
 - GitHub Actions CI for backend tests/lint and frontend lint/build
+- GitHub Actions security scans for Python dependencies, frontend dependencies, and Docker images
 - Agent tool contracts and audit log foundation
 - Agent orchestration endpoint for validated tool execution
 - Safe fallback AI explanation service
