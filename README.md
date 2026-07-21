@@ -24,7 +24,7 @@ PROVIDER_RETRY_COUNT=2
 PROVIDER_TIMEOUT_SECONDS=10
 ```
 
-Keep API keys in local `.env` files or a secret manager. Do not commit real keys.
+Keep API keys in local `.env` files for development. Production runtimes can use `SECRET_PROVIDER=file` with mounted secrets such as `/run/secrets/polygon_api_key`. Do not commit real keys.
 
 ## Run locally
 ```bash
@@ -70,6 +70,7 @@ Open http://localhost:3000.
 - OpenAPI error response schemas for client integration
 - GitHub Actions CI for backend tests/lint and frontend lint/build
 - GitHub Actions security scans for Python dependencies, frontend dependencies, and Docker images
+- Runtime secret provider adapter for local env values and file-mounted production secrets
 - Agent tool contracts and audit log foundation
 - Agent orchestration endpoint for validated tool execution
 - Safe fallback AI explanation service

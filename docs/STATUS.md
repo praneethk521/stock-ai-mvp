@@ -30,9 +30,10 @@ Production-grade stock intelligence build in progress with FastAPI backend, Next
 - Added safe fallback AI explanation service and stock explanation API
 - Added auth foundation with `X-User-Id` user context and user-scoped watchlists/recommendation history
 - Added dependency and container scanning workflow; upgraded backend/frontend vulnerable dependencies
+- Added runtime secret provider adapter for env and file-mounted production secrets
 
 ## Next Codex Task
-Add production secret manager integration plan and runtime configuration adapter.
+Add production identity provider design and backend auth enforcement.
 
 ## Working Rules for Codex
 After every meaningful change:
@@ -40,12 +41,12 @@ After every meaningful change:
 2. Mark completed milestone items in `docs/MILESTONES.md`
 3. Add or update tests
 4. Do not commit secrets
-5. Keep MVP scope tight
+5. Keep production increments scoped
 
 ## Known Gaps
 - Local Docker demo still defaults to mock providers until `POLYGON_API_KEY` is configured
 - Auth is header-based foundation only; production identity provider is not implemented
-- Secret manager integration is not implemented; local env files remain the only runtime secret source
+- Cloud-native secret manager SDK integration is not implemented; production can use mounted secrets via `SECRET_PROVIDER=file`
 - Polygon plan limits may affect some endpoints; frontend now surfaces provider/API failures with request IDs
 - MCP server is documented but not implemented
 - Frontend placeholders remain for deeper admin/provider workflows

@@ -2,6 +2,7 @@
 
 ## MVP Controls
 - API keys via environment variables only
+- Optional file-mounted secret adapter for production runtimes
 - No secrets committed
 - Ticker input validation
 - Backend rate limiting
@@ -16,7 +17,7 @@
 
 ## Production Requirements
 - Authentication and authorization
-- AWS Secrets Manager or equivalent
+- AWS Secrets Manager or equivalent, mounted or injected through the runtime secret adapter
 - HTTPS only
 - Centralized logging with PII/secrets redaction
 - Dependency scanning with release/PR gates
@@ -30,6 +31,12 @@
 - The same workflow runs frontend dependency audits with `pnpm audit --audit-level high`.
 - Backend and frontend Docker images are built and scanned with Trivy for high/critical OS and library vulnerabilities.
 - The workflow also runs weekly so new advisories are detected even when application code does not change.
+
+## Runtime Secrets
+- Local demos use `SECRET_PROVIDER=env` and read values such as `POLYGON_API_KEY` from `.env` or process environment.
+- Production runtimes can use `SECRET_PROVIDER=file` with `SECRETS_DIR=/run/secrets`.
+- Secret filenames are configured with fields such as `POLYGON_API_KEY_SECRET_NAME`; direct environment values still take precedence for local overrides.
+- Admin status reports only the selected `secret_provider`, never secret values.
 
 ## Explicit Non-Goals
 - No automated trade execution in MVP

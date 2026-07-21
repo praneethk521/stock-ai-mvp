@@ -138,6 +138,7 @@ async def admin_status(db: Session = Depends(get_db)) -> dict:
         'app_env': settings.app_env,
         'market_data_provider': settings.market_data_provider,
         'news_provider': settings.news_provider,
+        'secret_provider': settings.secret_provider,
         'market_provider_health': provider_health(market_provider, settings.market_data_provider),
         'news_provider_health': provider_health(news_provider, settings.news_provider),
         'recommendation_model': engine.model_version,

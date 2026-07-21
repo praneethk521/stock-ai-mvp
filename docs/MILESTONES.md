@@ -46,7 +46,7 @@
 
 ## M8: Security Hardening
 - [x] Auth foundation
-- [ ] Secret manager integration
+- [x] Secret manager integration
 - [x] Dependency scanning
 - [x] Container scan
 

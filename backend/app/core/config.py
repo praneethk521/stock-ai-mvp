@@ -19,10 +19,16 @@ class Settings(BaseSettings):
     provider_timeout_seconds: float = 10.0
     provider_cache_ttl_seconds: int = 30
     provider_retry_count: int = 2
+    secret_provider: str = 'env'
+    secrets_dir: str = '/run/secrets'
     openai_api_key: str | None = None
     polygon_api_key: str | None = None
     finnhub_api_key: str | None = None
     alphavantage_api_key: str | None = None
+    openai_api_key_secret_name: str | None = None
+    polygon_api_key_secret_name: str | None = None
+    finnhub_api_key_secret_name: str | None = None
+    alphavantage_api_key_secret_name: str | None = None
 
     @property
     def cors_origin_list(self) -> list[str]:
