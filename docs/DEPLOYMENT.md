@@ -8,6 +8,10 @@
 - Production runtime: use `SECRET_PROVIDER=file`, mount secrets into `SECRETS_DIR`, and set names such as `POLYGON_API_KEY_SECRET_NAME=polygon_api_key`.
 - AWS direction: store secrets in AWS Secrets Manager, then inject or mount them through ECS/EKS runtime secret support.
 
+## Authentication
+- Local demo: use `AUTH_MODE=local`.
+- Production runtime: use `AUTH_MODE=jwt`, configure issuer/audience, and provide either a mounted HMAC secret or a JWKS URL from the identity provider.
+
 ## AWS Direction
 - Frontend: CloudFront + S3 or container on ECS/EKS
 - Backend: ECS/Fargate or EKS
@@ -18,8 +22,8 @@
 
 ## Production Checklist
 - Runtime secrets configured
-- HTTPS enabled
 - Auth enabled
+- HTTPS enabled
 - Observability enabled
 - Dependency/container scans passing
 - Database migrations automated

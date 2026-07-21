@@ -45,7 +45,7 @@
 - [x] Add AI explanation service
 
 ## M8: Security Hardening
-- [x] Auth foundation
+- [x] Auth foundation with optional JWT enforcement
 - [x] Secret manager integration
 - [x] Dependency scanning
 - [x] Container scan

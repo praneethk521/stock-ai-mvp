@@ -8,6 +8,7 @@ SECRET_ENV_VARS = {
     'polygon_api_key': 'POLYGON_API_KEY',
     'finnhub_api_key': 'FINNHUB_API_KEY',
     'alphavantage_api_key': 'ALPHAVANTAGE_API_KEY',
+    'auth_jwt_secret': 'AUTH_JWT_SECRET',
 }
 
 SECRET_NAME_FIELDS = {
@@ -15,6 +16,7 @@ SECRET_NAME_FIELDS = {
     'polygon_api_key': 'polygon_api_key_secret_name',
     'finnhub_api_key': 'finnhub_api_key_secret_name',
     'alphavantage_api_key': 'alphavantage_api_key_secret_name',
+    'auth_jwt_secret': 'auth_jwt_secret_name',
 }
 
 

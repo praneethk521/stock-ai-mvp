@@ -7,7 +7,7 @@ from app.core.secrets import SecretConfigurationError, get_secret
 
 
 def clear_secret_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    for env_name in ('OPENAI_API_KEY', 'POLYGON_API_KEY', 'FINNHUB_API_KEY', 'ALPHAVANTAGE_API_KEY'):
+    for env_name in ('OPENAI_API_KEY', 'POLYGON_API_KEY', 'FINNHUB_API_KEY', 'ALPHAVANTAGE_API_KEY', 'AUTH_JWT_SECRET'):
         monkeypatch.delenv(env_name, raising=False)
 
 

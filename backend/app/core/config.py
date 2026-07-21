@@ -13,6 +13,14 @@ class Settings(BaseSettings):
     redis_url: str = 'redis://localhost:6379/0'
     cors_origins: str = 'http://localhost:3000'
     default_user_id: str = 'local-demo-user'
+    auth_mode: str = 'local'
+    auth_user_id_claim: str = 'sub'
+    auth_jwt_algorithm: str = 'HS256'
+    auth_jwt_audience: str | None = None
+    auth_jwt_issuer: str | None = None
+    auth_jwt_jwks_url: str | None = None
+    auth_jwt_secret: str | None = None
+    auth_jwt_secret_name: str | None = None
     market_data_provider: str = 'mock'
     news_provider: str = 'mock'
     polygon_base_url: str = 'https://api.polygon.io'

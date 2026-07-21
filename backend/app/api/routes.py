@@ -136,6 +136,7 @@ async def news_sentiment(tickers: str | None = None, db: Session = Depends(get_d
 async def admin_status(db: Session = Depends(get_db)) -> dict:
     return {
         'app_env': settings.app_env,
+        'auth_mode': settings.auth_mode,
         'market_data_provider': settings.market_data_provider,
         'news_provider': settings.news_provider,
         'secret_provider': settings.secret_provider,

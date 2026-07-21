@@ -26,6 +26,9 @@ PROVIDER_TIMEOUT_SECONDS=10
 
 Keep API keys in local `.env` files for development. Production runtimes can use `SECRET_PROVIDER=file` with mounted secrets such as `/run/secrets/polygon_api_key`. Do not commit real keys.
 
+## Auth mode
+The local demo defaults to `AUTH_MODE=local`, which scopes user data with `X-User-Id`. Production can set `AUTH_MODE=jwt` to require bearer tokens for user-scoped endpoints.
+
 ## Run locally
 ```bash
 cp backend/.env.example backend/.env
@@ -71,6 +74,7 @@ Open http://localhost:3000.
 - GitHub Actions CI for backend tests/lint and frontend lint/build
 - GitHub Actions security scans for Python dependencies, frontend dependencies, and Docker images
 - Runtime secret provider adapter for local env values and file-mounted production secrets
+- Optional JWT auth mode for bearer-token enforcement on user-scoped endpoints
 - Agent tool contracts and audit log foundation
 - Agent orchestration endpoint for validated tool execution
 - Safe fallback AI explanation service

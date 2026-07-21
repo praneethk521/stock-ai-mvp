@@ -1,10 +1,12 @@
 import pytest
+import jwt
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.agents.tools import get_large_cap_movers_tool
+from app.core.config import get_settings
 from app.core.db import Base, get_db
 from app.main import app
 from app.models.agent import AgentToolAuditLog
@@ -162,6 +164,7 @@ def test_admin_status_includes_persistence_count():
     assert res.status_code == 200
     data = res.json()
     assert data['market_data_provider'] == 'mock'
+    assert data['auth_mode'] == 'local'
     assert data['secret_provider'] == 'env'
     assert data['market_provider_health']['ok'] is True
     assert data['news_provider_health']['ok'] is True
@@ -203,6 +206,46 @@ def test_watchlist_is_user_scoped():
 
     assert [item['ticker'] for item in user_a.json()] == ['NVDA']
     assert [item['ticker'] for item in user_b.json()] == ['TSLA']
+
+
+def test_jwt_auth_mode_requires_bearer_token(monkeypatch: pytest.MonkeyPatch):
+    reset_db()
+    jwt_secret = 'test-secret-with-at-least-32-bytes'
+    monkeypatch.setenv('AUTH_MODE', 'jwt')
+    monkeypatch.setenv('AUTH_JWT_ALGORITHM', 'HS256')
+    monkeypatch.setenv('AUTH_JWT_SECRET', jwt_secret)
+    get_settings.cache_clear()
+
+    try:
+        res = client.get('/api/v1/watchlist')
+    finally:
+        get_settings.cache_clear()
+
+    assert res.status_code == 401
+    assert res.json()['error']['message'] == 'Missing bearer token'
+
+
+def test_jwt_auth_mode_uses_token_subject_for_user_scope(monkeypatch: pytest.MonkeyPatch):
+    reset_db()
+    jwt_secret = 'test-secret-with-at-least-32-bytes'
+    monkeypatch.setenv('AUTH_MODE', 'jwt')
+    monkeypatch.setenv('AUTH_JWT_ALGORITHM', 'HS256')
+    monkeypatch.setenv('AUTH_JWT_SECRET', jwt_secret)
+    get_settings.cache_clear()
+    token = jwt.encode({'sub': 'jwt-user'}, jwt_secret, algorithm='HS256')
+
+    try:
+        create_res = client.post(
+            '/api/v1/watchlist',
+            json={'ticker': 'NVDA', 'notes': 'JWT scoped'},
+            headers={'authorization': f'Bearer {token}'},
+        )
+        list_res = client.get('/api/v1/watchlist', headers={'authorization': f'Bearer {token}'})
+    finally:
+        get_settings.cache_clear()
+
+    assert create_res.status_code == 200
+    assert [item['ticker'] for item in list_res.json()] == ['NVDA']
 
 
 def test_rejects_invalid_user_id_header():
