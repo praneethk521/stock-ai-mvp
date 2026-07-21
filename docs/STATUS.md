@@ -32,9 +32,10 @@ Production-grade stock intelligence build in progress with FastAPI backend, Next
 - Added dependency and container scanning workflow; upgraded backend/frontend vulnerable dependencies
 - Added runtime secret provider adapter for env and file-mounted production secrets
 - Added optional JWT auth mode for bearer-token enforcement on user-scoped endpoints
+- Added production architecture doc and AWS Terraform skeleton
 
 ## Next Codex Task
-Add deployment architecture skeleton for production cloud hosting.
+Add Kubernetes manifests for containerized deployment portability.
 
 ## Working Rules for Codex
 After every meaningful change:

@@ -51,6 +51,6 @@
 - [x] Container scan
 
 ## M9: Deployment Readiness
-- [ ] AWS architecture
+- [x] AWS architecture
 - [ ] Kubernetes manifests
-- [ ] Terraform skeleton
+- [x] Terraform skeleton
