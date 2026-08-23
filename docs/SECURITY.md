@@ -31,6 +31,7 @@
 - `.github/workflows/security.yml` runs backend dependency audits with `pip-audit`.
 - The same workflow runs frontend dependency audits with `pnpm audit --audit-level high`.
 - Backend and frontend Docker images are built and scanned with Trivy for high/critical OS and library vulnerabilities.
+- Production images exclude backend test/lint tools and frontend build/package-manager tooling.
 - The workflow also runs weekly so new advisories are detected even when application code does not change.
 
 ## Runtime Secrets

@@ -44,7 +44,7 @@ Open:
 Terminal 1:
 ```bash
 python3 -m venv .venv
-.venv/bin/python -m pip install -r backend/requirements.txt
+.venv/bin/python -m pip install -r backend/requirements-dev.txt
 cd backend
 ../.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```

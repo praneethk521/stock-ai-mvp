@@ -35,6 +35,7 @@ Production-grade stock intelligence build in progress with FastAPI backend, Next
 - Added production architecture doc and AWS Terraform skeleton
 - Added portable Kubernetes manifests, production containers, health probes, autoscaling, disruption budgets, and a migration job
 - Added semantic-versioned multi-platform GHCR release workflow with provenance and SBOM attestations
+- Cleared high/critical dependency and container findings with patched packages and minimal production images
 
 ## Next Codex Task
 Add observability foundations for metrics, tracing, and production health diagnostics.

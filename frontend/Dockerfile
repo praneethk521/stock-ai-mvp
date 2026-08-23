@@ -11,12 +11,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm build
 
-FROM node:22-slim AS runner
+FROM gcr.io/distroless/nodejs22-debian13:nonroot AS runner
 WORKDIR /app
 ENV NODE_ENV=production HOSTNAME=0.0.0.0 PORT=3000
-RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 --gid nodejs nextjs
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-USER nextjs
+COPY --from=builder --chown=65532:65532 /app/.next/standalone ./
+COPY --from=builder --chown=65532:65532 /app/.next/static ./.next/static
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["server.js"]
