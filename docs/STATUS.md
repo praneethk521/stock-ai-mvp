@@ -40,9 +40,10 @@ Production-grade stock intelligence build in progress with FastAPI backend, Next
 - Added validated Prometheus alert rules, a centralized request-log schema, and incident response guidance
 - Added guarded local PostgreSQL backup/restore tooling and a production recovery drill runbook
 - Added user-scoped one-shot price alerts with CRUD, provider-backed evaluation, re-arming, and UI
+- Added deterministic SMA backtesting with next-candle execution, transaction fees, benchmark/drawdown metrics, and UI
 
 ## Next Codex Task
-Add deterministic recommendation backtesting over historical provider candles.
+Add persisted backtest runs and walk-forward evaluation datasets.
 
 ## Working Rules for Codex
 After every meaningful change:
@@ -62,3 +63,4 @@ After every meaningful change:
 - Kubernetes host, identity provider, managed database/cache, and image values are deployment placeholders until a target environment is selected
 - Alert thresholds, recovery targets, and centralized log routing need calibration against a staging environment
 - Price alerts currently evaluate on demand; scheduled evaluation and notification delivery require a worker and channel provider
+- Backtesting v1 excludes slippage, corporate actions, taxes, parameter sweeps, and persisted run comparison

@@ -25,6 +25,8 @@ from app.repositories.watchlist import delete_watchlist_item, list_watchlist_ite
 from app.schemas.agent import AgentToolAuditItem, AgentToolExecutionRequest
 from app.schemas.market import (
     ApiErrorResponse,
+    BacktestRequest,
+    BacktestResponse,
     ExplanationResponse,
     NewsArticle,
     NewsArticleHistoryItem,
@@ -38,6 +40,7 @@ from app.schemas.market import (
     WatchlistItemCreate,
     WatchlistItemRead,
 )
+from app.services.backtest_service import BacktestService
 from app.services.explanation_service import ExplanationService
 from app.services.factory import get_market_provider, get_news_provider
 from app.services.recommendation_engine import RecommendationEngine
@@ -56,6 +59,7 @@ market_provider = get_market_provider()
 news_provider = get_news_provider()
 engine = RecommendationEngine()
 explanation_service = ExplanationService()
+backtest_service = BacktestService()
 agent_orchestrator = AgentToolOrchestrator(
     market_provider=market_provider,
     news_provider=news_provider,
@@ -344,6 +348,19 @@ async def evaluate_user_price_alerts(
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f'Price alert evaluation failed: {exc}') from exc
     return evaluate_price_alerts(db, alerts=alerts, prices=prices)
+
+
+@router.post('/backtests', response_model=BacktestResponse, responses=PROVIDER_ERROR_RESPONSES)
+async def run_backtest(request: BacktestRequest) -> BacktestResponse:
+    symbol = validate_ticker(request.ticker)
+    normalized_request = request.model_copy(update={'ticker': symbol})
+    try:
+        candles = await market_provider.get_historical_candles(symbol, days=request.days)
+        return backtest_service.run(candles, normalized_request)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f'Backtest provider failed: {exc}') from exc
 
 
 @router.get('/stocks/{ticker}', responses=PROVIDER_ERROR_RESPONSES)

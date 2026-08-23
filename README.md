@@ -81,6 +81,7 @@ Open http://localhost:3000.
 - Prometheus metrics, structured request logs, request correlation, and optional OpenTelemetry trace export
 - Validated production alert rules plus backup, restore, and incident response runbooks
 - User-scoped price alerts with provider-backed threshold evaluation
+- Deterministic SMA strategy backtesting with next-candle execution and risk/benchmark metrics
 - Agent tool contracts and audit log foundation
 - Agent orchestration endpoint for validated tool execution
 - Safe fallback AI explanation service
@@ -97,3 +98,5 @@ Observability configuration and initial production signals are documented in `do
 Operational response and database recovery procedures are in `docs/OPERATIONS.md` and `docs/BACKUP_RESTORE.md`.
 
 Price alert behavior and API contracts are in `docs/PRICE_ALERTS.md`.
+
+Backtesting assumptions and limitations are in `docs/BACKTESTING.md`.

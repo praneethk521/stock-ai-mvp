@@ -323,6 +323,31 @@ def test_price_alert_rejects_invalid_threshold():
     assert res.status_code == 422
 
 
+def test_backtest_returns_deterministic_strategy_metrics():
+    res = client.post(
+        '/api/v1/backtests',
+        json={
+            'ticker': 'nvda',
+            'days': 90,
+            'initial_capital': 10_000,
+            'fast_window': 10,
+            'slow_window': 30,
+            'fee_bps': 5,
+        },
+    )
+
+    assert res.status_code == 200
+    result = res.json()
+    assert result['ticker'] == 'NVDA'
+    assert result['strategy'] == 'sma-crossover-v1'
+    assert result['initial_capital'] == 10_000
+    assert result['final_value'] > 0
+    assert result['trade_count'] == 1
+    assert result['trades'][0]['side'] == 'buy'
+    assert result['trades'][-1]['side'] == 'sell'
+    assert result['disclaimer'].startswith('Historical simulation only')
+
+
 def test_jwt_auth_mode_requires_bearer_token(monkeypatch: pytest.MonkeyPatch):
     reset_db()
     jwt_secret = 'test-secret-with-at-least-32-bytes'
@@ -412,9 +437,12 @@ def test_openapi_documents_standard_error_schema():
     assert 'PriceAlertCreate' in schemas
     assert 'PriceAlertRead' in schemas
     assert 'PriceAlertUpdate' in schemas
+    assert 'BacktestRequest' in schemas
+    assert 'BacktestResponse' in schemas
     assert {'get', 'post'} <= spec['paths']['/api/v1/alerts'].keys()
     assert {'put', 'delete'} <= spec['paths']['/api/v1/alerts/{alert_id}'].keys()
     assert 'post' in spec['paths']['/api/v1/alerts/evaluate']
+    assert 'post' in spec['paths']['/api/v1/backtests']
     top_movers_responses = spec['paths']['/api/v1/market/top-movers']['get']['responses']
     assert '400' in top_movers_responses
     assert '422' in top_movers_responses

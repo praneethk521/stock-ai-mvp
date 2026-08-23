@@ -8,6 +8,7 @@ const links = [
   ['Recommendations', '/recommendations'],
   ['Watchlist', '/watchlist'],
   ['Alerts', '/alerts'],
+  ['Backtesting', '/backtesting'],
   ['Admin', '/admin'],
 ];
 

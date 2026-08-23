@@ -70,3 +70,10 @@
 - [x] Provider-backed threshold evaluation
 - [x] Alert management UI
 - [ ] Scheduled evaluation and notification delivery
+
+## M13: Backtesting
+- [x] Deterministic SMA crossover engine
+- [x] Next-candle execution and transaction fees
+- [x] Benchmark, return, and drawdown metrics
+- [x] Backtesting API and UI
+- [ ] Persisted runs, walk-forward evaluation, and parameter sweeps

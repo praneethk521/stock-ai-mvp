@@ -22,11 +22,12 @@ Build a secure, production-grade stock insights application that combines market
 11. Prometheus metrics, structured request logs, optional OTLP traces, and production alert rules
 12. Backup, restore, and incident response runbooks
 13. Persisted, user-scoped price thresholds with on-demand provider evaluation
+14. Deterministic SMA crossover backtesting with fees, benchmark comparison, and drawdown
 
 ## Remaining Product Scope
 - Production identity provider provisioning and frontend sign-in/session flow
 - Scheduled alert evaluation and email, SMS, or push delivery
-- Backtesting
+- Persisted walk-forward backtests, parameter sweeps, and evaluation datasets
 - LLM-backed explanations with evaluation and safety gates
 - Model training pipeline
 - MCP server integration
@@ -46,6 +47,7 @@ Build a secure, production-grade stock insights application that combines market
 - Generate safe recommendation explanation narratives
 - Scope watchlists and recommendation history by user context
 - Create, evaluate, re-arm, and delete user-scoped price alerts
+- Backtest a deterministic strategy without same-candle look-ahead
 - Return confidence, risk, explanation, supporting signals, timestamp, model version
 
 ## Non-Functional Requirements

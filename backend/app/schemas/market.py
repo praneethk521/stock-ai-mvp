@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class MarketMover(BaseModel):
@@ -142,3 +142,46 @@ class PriceAlertRead(BaseModel):
     triggered_at: datetime | None
     created_at: datetime
     updated_at: datetime
+
+
+class BacktestRequest(BaseModel):
+    ticker: str
+    days: int = Field(default=180, ge=20, le=365)
+    initial_capital: float = Field(default=10_000, ge=100, le=1_000_000_000)
+    fast_window: int = Field(default=10, ge=2, le=100)
+    slow_window: int = Field(default=30, ge=3, le=200)
+    fee_bps: float = Field(default=5, ge=0, le=100)
+
+    @model_validator(mode='after')
+    def validate_windows(self) -> 'BacktestRequest':
+        if self.fast_window >= self.slow_window:
+            raise ValueError('fast_window must be less than slow_window')
+        if self.days <= self.slow_window:
+            raise ValueError('days must be greater than slow_window')
+        return self
+
+
+class BacktestTrade(BaseModel):
+    side: Literal['buy', 'sell']
+    signal_timestamp: datetime
+    execution_timestamp: datetime
+    price: float
+    shares: float
+    fee: float
+    reason: str
+
+
+class BacktestResponse(BaseModel):
+    ticker: str
+    strategy: str
+    started_at: datetime
+    ended_at: datetime
+    initial_capital: float
+    final_value: float
+    total_return_percent: float
+    benchmark_return_percent: float
+    max_drawdown_percent: float
+    trade_count: int
+    trades: list[BacktestTrade]
+    parameters: dict[str, float | int]
+    disclaimer: str = 'Historical simulation only. Past performance does not predict future results.'
