@@ -52,6 +52,22 @@ def test_liveness_and_readiness_health_checks():
     assert ready_res.json() == {'status': 'ready', 'checks': {'database': 'ok'}}
 
 
+def test_metrics_expose_http_request_counters_and_request_id():
+    reset_db()
+
+    health_res = client.get('/api/v1/health/live', headers={'x-request-id': 'test-request-id'})
+    client.get('/api/v1/stocks/NVDA/recommendation')
+    metrics_res = client.get('/metrics')
+
+    assert health_res.headers['x-request-id'] == 'test-request-id'
+    assert metrics_res.status_code == 200
+    assert metrics_res.headers['content-type'].startswith('text/plain')
+    assert 'stock_ai_http_requests_total' in metrics_res.text
+    assert 'route="/api/v1/health/live"' in metrics_res.text
+    assert 'route="/api/v1/stocks/{ticker}/recommendation"' in metrics_res.text
+    assert 'route="/api/v1/stocks/NVDA/recommendation"' not in metrics_res.text
+
+
 def test_large_cap_movers_returns_top_ten_sorted_by_absolute_move():
     reset_db()
     res = client.get('/api/v1/market/large-cap-movers')
@@ -178,6 +194,9 @@ def test_admin_status_includes_persistence_count():
     assert data['market_data_provider'] == 'mock'
     assert data['auth_mode'] == 'local'
     assert data['secret_provider'] == 'env'
+    assert data['metrics_enabled'] is True
+    assert data['tracing_enabled'] is False
+    assert data['otel_service_name'] == 'stock-ai-backend'
     assert data['market_provider_health']['ok'] is True
     assert data['news_provider_health']['ok'] is True
     assert data['persisted_recommendations'] == 1

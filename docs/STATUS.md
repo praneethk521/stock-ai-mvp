@@ -36,9 +36,10 @@ Production-grade stock intelligence build in progress with FastAPI backend, Next
 - Added portable Kubernetes manifests, production containers, health probes, autoscaling, disruption budgets, and a migration job
 - Added semantic-versioned multi-platform GHCR release workflow with provenance and SBOM attestations
 - Cleared high/critical dependency and container findings with patched packages and minimal production images
+- Added Prometheus HTTP metrics, structured request logs, request/trace correlation, and optional OTLP tracing
 
 ## Next Codex Task
-Add observability foundations for metrics, tracing, and production health diagnostics.
+Add portable production alert definitions and an operations incident runbook.
 
 ## Working Rules for Codex
 After every meaningful change:
@@ -56,3 +57,4 @@ After every meaningful change:
 - MCP server is documented but not implemented
 - Frontend placeholders remain for deeper admin/provider workflows
 - Kubernetes host, identity provider, managed database/cache, and image values are deployment placeholders until a target environment is selected
+- Alert thresholds and centralized log routing need calibration against a staging environment

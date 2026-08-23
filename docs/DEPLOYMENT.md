@@ -36,6 +36,10 @@ kubectl kustomize infra/k8s/base
 
 See `infra/k8s/README.md` for deployment order and rollout checks.
 
+## Observability
+
+The backend exposes Prometheus metrics on its internal `/metrics` endpoint, emits structured JSON request logs, and supports optional OTLP/HTTP tracing. Kubernetes pods include Prometheus scrape annotations. Configure `OTEL_EXPORTER_OTLP_ENDPOINT` and set `TRACING_ENABLED=true` in an environment overlay when a collector is available. See `docs/OBSERVABILITY.md` for metric names and operational guidance.
+
 ## Production Checklist
 - Runtime secrets configured
 - Auth enabled

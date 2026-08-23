@@ -61,6 +61,6 @@
 - [ ] Add staging deployment workflow
 
 ## M11: Operations
-- [ ] Metrics and tracing foundation
+- [x] Metrics and tracing foundation
 - [ ] Centralized log and alert definitions
 - [ ] Backup and restore runbook

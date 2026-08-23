@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter
@@ -11,8 +11,10 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.api.routes import router
 from app.core.config import get_settings
 from app.core.errors import error_response, http_exception_handler, unhandled_exception_handler, validation_exception_handler
+from app.core.observability import configure_observability, metrics_response, observe_request
 
 settings = get_settings()
+configure_observability(settings)
 limiter = Limiter(key_func=get_remote_address, default_limits=['120/minute'])
 
 app = FastAPI(
@@ -27,9 +29,19 @@ app.state.limiter = limiter
 async def request_id_middleware(request: Request, call_next):
     request_id = request.headers.get('x-request-id') or str(uuid4())
     request.state.request_id = request_id
-    response = await call_next(request)
+    response = await observe_request(
+        request,
+        call_next,
+        metrics_enabled=settings.metrics_enabled,
+        route_prefix=settings.api_v1_prefix,
+    )
     response.headers['x-request-id'] = request_id
     return response
+
+
+@app.get('/metrics', include_in_schema=False)
+async def metrics() -> Response:
+    return metrics_response()
 
 
 @app.exception_handler(RateLimitExceeded)

@@ -27,6 +27,12 @@ class Settings(BaseSettings):
     provider_timeout_seconds: float = 10.0
     provider_cache_ttl_seconds: int = 30
     provider_retry_count: int = 2
+    log_level: str = 'INFO'
+    metrics_enabled: bool = True
+    tracing_enabled: bool = False
+    otel_service_name: str = 'stock-ai-backend'
+    otel_exporter_otlp_endpoint: str | None = None
+    otel_sample_ratio: float = 0.1
     secret_provider: str = 'env'
     secrets_dir: str = '/run/secrets'
     openai_api_key: str | None = None
