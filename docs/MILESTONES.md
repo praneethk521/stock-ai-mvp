@@ -56,8 +56,8 @@
 - [x] Terraform skeleton
 
 ## M10: Release Engineering
-- [ ] Publish versioned containers to GHCR
-- [ ] Validate deploy configuration in CI
+- [x] Publish versioned containers to GHCR
+- [x] Validate deploy configuration in CI
 - [ ] Add staging deployment workflow
 
 ## M11: Operations

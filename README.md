@@ -77,6 +77,7 @@ Open http://localhost:3000.
 - Optional JWT auth mode for bearer-token enforcement on user-scoped endpoints
 - Production architecture notes and AWS Terraform skeleton
 - Production container targets and portable Kubernetes manifests
+- Versioned multi-platform GHCR publishing with provenance and SBOM attestations
 - Agent tool contracts and audit log foundation
 - Agent orchestration endpoint for validated tool execution
 - Safe fallback AI explanation service
@@ -85,3 +86,5 @@ Open http://localhost:3000.
 
 ## Next implementation steps
 Follow `docs/MILESTONES.md` and update `docs/STATUS.md` after each completed task.
+
+Release process details are in `docs/RELEASING.md`.

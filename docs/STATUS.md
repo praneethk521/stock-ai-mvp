@@ -34,9 +34,10 @@ Production-grade stock intelligence build in progress with FastAPI backend, Next
 - Added optional JWT auth mode for bearer-token enforcement on user-scoped endpoints
 - Added production architecture doc and AWS Terraform skeleton
 - Added portable Kubernetes manifests, production containers, health probes, autoscaling, disruption budgets, and a migration job
+- Added semantic-versioned multi-platform GHCR release workflow with provenance and SBOM attestations
 
 ## Next Codex Task
-Publish versioned backend and frontend containers to GHCR with GitHub Actions.
+Add observability foundations for metrics, tracing, and production health diagnostics.
 
 ## Working Rules for Codex
 After every meaningful change:

@@ -45,3 +45,4 @@ See `infra/k8s/README.md` for deployment order and rollout checks.
 - Database migrations automated
 - Immutable container image references configured
 - Kubernetes migration job completed before application rollout
+- Published image provenance and SBOM verified
