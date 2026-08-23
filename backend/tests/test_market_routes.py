@@ -254,6 +254,75 @@ def test_watchlist_is_user_scoped():
     assert [item['ticker'] for item in user_b.json()] == ['TSLA']
 
 
+def test_price_alert_crud_is_user_scoped():
+    reset_db()
+    headers = {'x-user-id': 'alert-user'}
+
+    create_res = client.post(
+        '/api/v1/alerts',
+        json={'ticker': 'nvda', 'condition': 'above', 'target_price': 210},
+        headers=headers,
+    )
+    assert create_res.status_code == 201
+    alert = create_res.json()
+    assert alert['ticker'] == 'NVDA'
+    assert alert['is_active'] is True
+
+    assert client.get('/api/v1/alerts', headers={'x-user-id': 'other-user'}).json() == []
+    unauthorized_delete = client.delete(f"/api/v1/alerts/{alert['id']}", headers={'x-user-id': 'other-user'})
+    assert unauthorized_delete.status_code == 404
+
+    update_res = client.put(
+        f"/api/v1/alerts/{alert['id']}",
+        json={'target_price': 205, 'is_active': True},
+        headers=headers,
+    )
+    assert update_res.status_code == 200
+    assert update_res.json()['target_price'] == 205
+
+    delete_res = client.delete(f"/api/v1/alerts/{alert['id']}", headers=headers)
+    assert delete_res.json() == {'deleted': True, 'id': alert['id']}
+
+
+def test_price_alert_evaluation_triggers_met_threshold_once():
+    reset_db()
+    headers = {'x-user-id': 'alert-user'}
+    above = client.post(
+        '/api/v1/alerts',
+        json={'ticker': 'NVDA', 'condition': 'above', 'target_price': 190},
+        headers=headers,
+    ).json()
+    below = client.post(
+        '/api/v1/alerts',
+        json={'ticker': 'NVDA', 'condition': 'below', 'target_price': 190},
+        headers=headers,
+    ).json()
+
+    evaluate_res = client.post('/api/v1/alerts/evaluate', headers=headers)
+
+    assert evaluate_res.status_code == 200
+    evaluated = {item['id']: item for item in evaluate_res.json()}
+    assert evaluated[above['id']]['is_active'] is False
+    assert evaluated[above['id']]['triggered_at'] is not None
+    assert evaluated[above['id']]['last_price'] == 200.09
+    assert evaluated[below['id']]['is_active'] is True
+    assert evaluated[below['id']]['triggered_at'] is None
+
+    active = client.get('/api/v1/alerts?active_only=true', headers=headers).json()
+    assert [item['id'] for item in active] == [below['id']]
+
+
+def test_price_alert_rejects_invalid_threshold():
+    reset_db()
+
+    res = client.post(
+        '/api/v1/alerts',
+        json={'ticker': 'NVDA', 'condition': 'above', 'target_price': 0},
+    )
+
+    assert res.status_code == 422
+
+
 def test_jwt_auth_mode_requires_bearer_token(monkeypatch: pytest.MonkeyPatch):
     reset_db()
     jwt_secret = 'test-secret-with-at-least-32-bytes'
@@ -340,6 +409,12 @@ def test_openapi_documents_standard_error_schema():
     schemas = spec['components']['schemas']
     assert 'ApiErrorResponse' in schemas
     assert 'ApiErrorBody' in schemas
+    assert 'PriceAlertCreate' in schemas
+    assert 'PriceAlertRead' in schemas
+    assert 'PriceAlertUpdate' in schemas
+    assert {'get', 'post'} <= spec['paths']['/api/v1/alerts'].keys()
+    assert {'put', 'delete'} <= spec['paths']['/api/v1/alerts/{alert_id}'].keys()
+    assert 'post' in spec['paths']['/api/v1/alerts/evaluate']
     top_movers_responses = spec['paths']['/api/v1/market/top-movers']['get']['responses']
     assert '400' in top_movers_responses
     assert '422' in top_movers_responses

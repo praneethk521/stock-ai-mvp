@@ -7,6 +7,7 @@ const links = [
   ['News Sentiment', '/news-sentiment'],
   ['Recommendations', '/recommendations'],
   ['Watchlist', '/watchlist'],
+  ['Alerts', '/alerts'],
   ['Admin', '/admin'],
 ];
 

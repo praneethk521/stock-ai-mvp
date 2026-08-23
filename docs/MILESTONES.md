@@ -64,3 +64,9 @@
 - [x] Metrics and tracing foundation
 - [x] Centralized log and alert definitions
 - [x] Backup and restore runbook
+
+## M12: Price Alerts
+- [x] User-scoped alert persistence and API
+- [x] Provider-backed threshold evaluation
+- [x] Alert management UI
+- [ ] Scheduled evaluation and notification delivery

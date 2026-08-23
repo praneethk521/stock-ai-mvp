@@ -6,6 +6,11 @@ export const dynamic = 'force-dynamic';
 
 type AdminStatus = {
   app_env: string;
+  auth_mode: string;
+  secret_provider: string;
+  metrics_enabled: boolean;
+  tracing_enabled: boolean;
+  otel_service_name: string;
   market_data_provider: string;
   news_provider: string;
   market_provider_health: { ok: boolean; provider: string; market?: string; mode?: string; error?: string };
@@ -13,6 +18,7 @@ type AdminStatus = {
   recommendation_model: string;
   persisted_recommendations: number;
   persisted_news_articles: number;
+  persisted_price_alerts: number;
   agent_tool_audit_events: number;
   disclaimer: string;
 };
@@ -58,6 +64,8 @@ export default async function Page() {
         <div className="card">
           <h2>System Status</h2>
           <p>Environment: {status.app_env}</p>
+          <p>Authentication: {status.auth_mode}</p>
+          <p>Secrets: {status.secret_provider}</p>
           <p>Market provider: {status.market_data_provider}</p>
           <p>News provider: {status.news_provider}</p>
           <p>Market health: {status.market_provider_health.ok ? 'ok' : 'error'}</p>
@@ -65,11 +73,14 @@ export default async function Page() {
           <p>News health: {status.news_provider_health.ok ? 'ok' : 'error'}</p>
           {status.news_provider_health.error ? <small>{status.news_provider_health.error}</small> : null}
           <p>Recommendation model: {status.recommendation_model}</p>
+          <p>Metrics: {status.metrics_enabled ? 'enabled' : 'disabled'}</p>
+          <p>Tracing: {status.tracing_enabled ? `${status.otel_service_name} enabled` : 'disabled'}</p>
         </div>
         <div className="card">
           <h2>Persistence</h2>
           <p>Stored recommendations: {status.persisted_recommendations}</p>
           <p>Stored news articles: {status.persisted_news_articles}</p>
+          <p>Stored price alerts: {status.persisted_price_alerts}</p>
           <p>Agent audit events: {status.agent_tool_audit_events}</p>
           <p>{status.disclaimer}</p>
         </div>

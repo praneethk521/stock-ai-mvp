@@ -12,10 +12,32 @@ from app.core.db import get_db
 from app.core.config import get_settings
 from app.repositories.agent_audit import count_agent_tool_audit_logs, list_agent_tool_audit_logs
 from app.repositories.news import count_news_articles, list_recent_news_articles, persist_news_articles
+from app.repositories.price_alerts import (
+    count_price_alerts,
+    create_price_alert,
+    delete_price_alert,
+    evaluate_price_alerts,
+    list_price_alerts,
+    update_price_alert,
+)
 from app.repositories.recommendations import count_recommendations, create_recommendation_record, list_recent_recommendations
 from app.repositories.watchlist import delete_watchlist_item, list_watchlist_items, upsert_watchlist_item
 from app.schemas.agent import AgentToolAuditItem, AgentToolExecutionRequest
-from app.schemas.market import ApiErrorResponse, ExplanationResponse, NewsArticle, NewsArticleHistoryItem, NewsSentimentItem, Recommendation, RecommendationHistoryItem, StockCandle, WatchlistItemCreate, WatchlistItemRead
+from app.schemas.market import (
+    ApiErrorResponse,
+    ExplanationResponse,
+    NewsArticle,
+    NewsArticleHistoryItem,
+    NewsSentimentItem,
+    PriceAlertCreate,
+    PriceAlertRead,
+    PriceAlertUpdate,
+    Recommendation,
+    RecommendationHistoryItem,
+    StockCandle,
+    WatchlistItemCreate,
+    WatchlistItemRead,
+)
 from app.services.explanation_service import ExplanationService
 from app.services.factory import get_market_provider, get_news_provider
 from app.services.recommendation_engine import RecommendationEngine
@@ -165,6 +187,7 @@ async def admin_status(db: Session = Depends(get_db)) -> dict:
         'recommendation_model': engine.model_version,
         'persisted_recommendations': count_recommendations(db),
         'persisted_news_articles': count_news_articles(db),
+        'persisted_price_alerts': count_price_alerts(db),
         'agent_tool_audit_events': count_agent_tool_audit_logs(db),
         'disclaimer': 'Informational only. Not financial advice.',
     }
@@ -248,6 +271,79 @@ async def remove_watchlist_item(
     if not deleted:
         raise HTTPException(status_code=404, detail='Watchlist item not found')
     return {'deleted': True, 'ticker': symbol}
+
+
+@router.get('/alerts', response_model=list[PriceAlertRead])
+async def price_alerts(
+    active_only: bool = False,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+) -> list[PriceAlertRead]:
+    return list_price_alerts(db, user_id=user_id, active_only=active_only)
+
+
+@router.post('/alerts', response_model=PriceAlertRead, status_code=201)
+async def add_price_alert(
+    item: PriceAlertCreate,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+) -> PriceAlertRead:
+    if count_price_alerts(db, user_id=user_id) >= 100:
+        raise HTTPException(status_code=400, detail='Price alert limit reached')
+    return create_price_alert(
+        db,
+        user_id=user_id,
+        ticker=validate_ticker(item.ticker),
+        condition=item.condition,
+        target_price=item.target_price,
+    )
+
+
+@router.put('/alerts/{alert_id}', response_model=PriceAlertRead)
+async def edit_price_alert(
+    alert_id: int,
+    item: PriceAlertUpdate,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+) -> PriceAlertRead:
+    alert = update_price_alert(
+        db,
+        alert_id=alert_id,
+        user_id=user_id,
+        condition=item.condition,
+        target_price=item.target_price,
+        is_active=item.is_active,
+    )
+    if alert is None:
+        raise HTTPException(status_code=404, detail='Price alert not found')
+    return alert
+
+
+@router.delete('/alerts/{alert_id}')
+async def remove_price_alert(
+    alert_id: int,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+) -> dict:
+    if not delete_price_alert(db, alert_id=alert_id, user_id=user_id):
+        raise HTTPException(status_code=404, detail='Price alert not found')
+    return {'deleted': True, 'id': alert_id}
+
+
+@router.post('/alerts/evaluate', response_model=list[PriceAlertRead], responses=PROVIDER_ERROR_RESPONSES)
+async def evaluate_user_price_alerts(
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+) -> list[PriceAlertRead]:
+    alerts = list_price_alerts(db, user_id=user_id, active_only=True)
+    prices: dict[str, float] = {}
+    try:
+        for ticker in dict.fromkeys(alert.ticker for alert in alerts):
+            snapshot = await market_provider.get_ticker_snapshot(ticker)
+            prices[ticker] = float(snapshot['price'])
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f'Price alert evaluation failed: {exc}') from exc
+    return evaluate_price_alerts(db, alerts=alerts, prices=prices)
 
 
 @router.get('/stocks/{ticker}', responses=PROVIDER_ERROR_RESPONSES)

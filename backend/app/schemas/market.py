@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -118,3 +118,27 @@ class WatchlistItemRead(BaseModel):
     ticker: str
     notes: str
     created_at: datetime
+
+
+class PriceAlertCreate(BaseModel):
+    ticker: str
+    condition: Literal['above', 'below']
+    target_price: float = Field(gt=0, le=1_000_000_000)
+
+
+class PriceAlertUpdate(BaseModel):
+    condition: Literal['above', 'below'] | None = None
+    target_price: float | None = Field(default=None, gt=0, le=1_000_000_000)
+    is_active: bool | None = None
+
+
+class PriceAlertRead(BaseModel):
+    id: int
+    ticker: str
+    condition: str
+    target_price: float
+    is_active: bool
+    last_price: float | None
+    triggered_at: datetime | None
+    created_at: datetime
+    updated_at: datetime

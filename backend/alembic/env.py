@@ -7,6 +7,7 @@ from app.core.config import get_settings
 from app.core.db import Base
 from app.models import agent  # noqa: F401
 from app.models import news  # noqa: F401
+from app.models import price_alert  # noqa: F401
 from app.models import recommendation  # noqa: F401
 from app.models import watchlist  # noqa: F401
 

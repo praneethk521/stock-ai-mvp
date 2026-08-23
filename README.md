@@ -80,6 +80,7 @@ Open http://localhost:3000.
 - Versioned multi-platform GHCR publishing with provenance and SBOM attestations
 - Prometheus metrics, structured request logs, request correlation, and optional OpenTelemetry trace export
 - Validated production alert rules plus backup, restore, and incident response runbooks
+- User-scoped price alerts with provider-backed threshold evaluation
 - Agent tool contracts and audit log foundation
 - Agent orchestration endpoint for validated tool execution
 - Safe fallback AI explanation service
@@ -94,3 +95,5 @@ Release process details are in `docs/RELEASING.md`.
 Observability configuration and initial production signals are documented in `docs/OBSERVABILITY.md`.
 
 Operational response and database recovery procedures are in `docs/OPERATIONS.md` and `docs/BACKUP_RESTORE.md`.
+
+Price alert behavior and API contracts are in `docs/PRICE_ALERTS.md`.

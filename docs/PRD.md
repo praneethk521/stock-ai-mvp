@@ -21,10 +21,11 @@ Build a secure, production-grade stock insights application that combines market
 10. Local Docker Compose and portable Kubernetes deployment paths
 11. Prometheus metrics, structured request logs, optional OTLP traces, and production alert rules
 12. Backup, restore, and incident response runbooks
+13. Persisted, user-scoped price thresholds with on-demand provider evaluation
 
 ## Remaining Product Scope
 - Production identity provider provisioning and frontend sign-in/session flow
-- Alerts
+- Scheduled alert evaluation and email, SMS, or push delivery
 - Backtesting
 - LLM-backed explanations with evaluation and safety gates
 - Model training pipeline
@@ -44,6 +45,7 @@ Build a secure, production-grade stock insights application that combines market
 - Generate BUY/SELL/HOLD/WATCH recommendation
 - Generate safe recommendation explanation narratives
 - Scope watchlists and recommendation history by user context
+- Create, evaluate, re-arm, and delete user-scoped price alerts
 - Return confidence, risk, explanation, supporting signals, timestamp, model version
 
 ## Non-Functional Requirements
