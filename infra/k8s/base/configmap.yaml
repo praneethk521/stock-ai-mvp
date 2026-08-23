@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stock-ai-config
+data:
+  APP_ENV: production
+  APP_NAME: Stock AI Platform
+  API_V1_PREFIX: /api/v1
+  CORS_ORIGINS: https://stock-ai.example.com
+  AUTH_MODE: jwt
+  AUTH_USER_ID_CLAIM: sub
+  AUTH_JWT_ALGORITHM: RS256
+  AUTH_JWT_AUDIENCE: stock-ai-api
+  AUTH_JWT_ISSUER: https://identity.example.com/
+  AUTH_JWT_JWKS_URL: https://identity.example.com/.well-known/jwks.json
+  MARKET_DATA_PROVIDER: polygon
+  NEWS_PROVIDER: polygon
+  POLYGON_BASE_URL: https://api.polygon.io
+  PROVIDER_TIMEOUT_SECONDS: "10"
+  PROVIDER_CACHE_TTL_SECONDS: "30"
+  PROVIDER_RETRY_COUNT: "2"
+  SECRET_PROVIDER: file
+  SECRETS_DIR: /run/secrets
+  POLYGON_API_KEY_SECRET_NAME: polygon_api_key

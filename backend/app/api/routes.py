@@ -1,6 +1,8 @@
 import re
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.agents.contracts import ToolContract, ToolEnvelope, list_tool_contracts
@@ -24,6 +26,7 @@ COMMON_ERROR_RESPONSES = {
     422: {'description': 'Request validation failed', 'model': ApiErrorResponse},
     429: {'description': 'Rate limit exceeded', 'model': ApiErrorResponse},
     500: {'description': 'Unexpected server error', 'model': ApiErrorResponse},
+    503: {'description': 'Service dependency unavailable', 'model': ApiErrorResponse},
 }
 router = APIRouter(responses=COMMON_ERROR_RESPONSES)
 settings = get_settings()
@@ -88,6 +91,20 @@ async def fetch_and_persist_news(symbol: str, db: Session) -> list[NewsArticle]:
 @router.get('/health')
 async def health() -> dict:
     return {'status': 'ok'}
+
+
+@router.get('/health/live')
+async def liveness() -> dict:
+    return {'status': 'alive'}
+
+
+@router.get('/health/ready')
+async def readiness(db: Session = Depends(get_db)) -> dict:
+    try:
+        db.execute(text('SELECT 1'))
+    except SQLAlchemyError as exc:
+        raise HTTPException(status_code=503, detail='Database is unavailable') from exc
+    return {'status': 'ready', 'checks': {'database': 'ok'}}
 
 
 @router.get('/market/overview', responses=PROVIDER_ERROR_RESPONSES)

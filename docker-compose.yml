@@ -13,12 +13,13 @@ services:
   backend:
     build: ./backend
     env_file: ./backend/.env.example
+    command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
     ports: ["8000:8000"]
     depends_on: [postgres, redis]
   frontend:
     build: ./frontend
     environment:
-      NEXT_PUBLIC_API_BASE_URL: http://backend:8000/api/v1
+      API_BASE_URL: http://backend:8000/api/v1
     ports: ["3000:3000"]
     depends_on: [backend]
 volumes:

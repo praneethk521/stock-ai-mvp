@@ -40,6 +40,18 @@ def reset_db():
     Base.metadata.create_all(bind=engine)
 
 
+def test_liveness_and_readiness_health_checks():
+    reset_db()
+
+    live_res = client.get('/api/v1/health/live')
+    ready_res = client.get('/api/v1/health/ready')
+
+    assert live_res.status_code == 200
+    assert live_res.json() == {'status': 'alive'}
+    assert ready_res.status_code == 200
+    assert ready_res.json() == {'status': 'ready', 'checks': {'database': 'ok'}}
+
+
 def test_large_cap_movers_returns_top_ten_sorted_by_absolute_move():
     reset_db()
     res = client.get('/api/v1/market/large-cap-movers')

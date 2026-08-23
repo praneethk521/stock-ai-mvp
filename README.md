@@ -76,6 +76,7 @@ Open http://localhost:3000.
 - Runtime secret provider adapter for local env values and file-mounted production secrets
 - Optional JWT auth mode for bearer-token enforcement on user-scoped endpoints
 - Production architecture notes and AWS Terraform skeleton
+- Production container targets and portable Kubernetes manifests
 - Agent tool contracts and audit log foundation
 - Agent orchestration endpoint for validated tool execution
 - Safe fallback AI explanation service

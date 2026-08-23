@@ -20,6 +20,22 @@
 - Secrets: AWS Secrets Manager
 - CI/CD: GitHub Actions
 
+## Kubernetes
+
+Portable application manifests live in `infra/k8s/base`. They assume managed PostgreSQL and Redis services and do not install stateful dependencies into the application cluster.
+
+The base includes two-replica deployments, services, ingress, health probes, resource requests/limits, horizontal autoscaling, disruption budgets, and hardened pod/container security contexts. The backend image runs only the API process; `infra/k8s/base/migration-job.yaml` runs Alembic as a release step before application rollout.
+
+Production setup must replace the example hostname, identity provider values, and image versions. Create the `stock-ai-runtime` Secret outside Git using the platform's secret manager integration; `infra/k8s/base/secret.example.yaml` lists its required keys.
+
+Render the application resources locally with:
+
+```bash
+kubectl kustomize infra/k8s/base
+```
+
+See `infra/k8s/README.md` for deployment order and rollout checks.
+
 ## Production Checklist
 - Runtime secrets configured
 - Auth enabled
@@ -27,3 +43,5 @@
 - Observability enabled
 - Dependency/container scans passing
 - Database migrations automated
+- Immutable container image references configured
+- Kubernetes migration job completed before application rollout

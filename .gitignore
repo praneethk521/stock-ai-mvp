@@ -8,3 +8,4 @@ node_modules/
 .next/
 postgres_data/
 .DS_Store
+infra/k8s/**/secret.yaml

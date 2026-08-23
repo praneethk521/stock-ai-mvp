@@ -8,25 +8,27 @@ Build a secure, production-grade stock insights application that combines market
 - Active trader looking for intraday/weekly ideas
 - Admin/operator monitoring data pipelines and model outputs
 
-## MVP Features
+## Delivered Product Scope
 1. Dashboard with market overview
 2. Large-cap movers with market cap filter, default $50B+
 3. Stock detail page
-4. News sentiment placeholder/provider interface
+4. News sentiment with persisted provider articles
 5. Rules-based recommendation v1
 6. Visible financial disclaimer
-7. Extensible provider and agent/tool architecture
+7. Persisted, user-scoped watchlists and recommendation history
+8. Polygon market/news provider with caching, retries, and technical indicators
+9. Agent tool contracts, execution audit records, and safe explanation fallback
+10. Local Docker Compose and portable Kubernetes deployment paths
 
-## Future Scope
-- Real market data providers: Polygon, Finnhub, Alpha Vantage, Tiingo, IEX-style providers
-- Authenticated user watchlists
+## Remaining Product Scope
+- Production identity provider provisioning and frontend sign-in/session flow
 - Alerts
 - Backtesting
-- Recommendation history
-- LLM explanations
+- LLM-backed explanations with evaluation and safety gates
 - Model training pipeline
 - MCP server integration
-- Kubernetes deployment
+- Production cloud environment and release automation
+- Operational dashboards, alerting, backup, and recovery validation
 
 ## Functional Requirements
 - Fetch market overview
@@ -51,6 +53,8 @@ Build a secure, production-grade stock insights application that combines market
 - Tests and CI
 - Provider abstraction
 - Safe scraping/API compliance
+- Health probes, horizontal scaling, and controlled database migrations
+- Dependency and container vulnerability scanning
 
 ## Acceptance Criteria
 - App runs locally with Docker Compose
@@ -58,3 +62,5 @@ Build a secure, production-grade stock insights application that combines market
 - Frontend renders dashboard, large-cap movers, and stock recommendation page
 - Docs clearly define next milestones
 - Recommendation includes disclaimer
+- Production containers run non-root processes and use runtime configuration
+- Kubernetes manifests render successfully and separate migrations from API startup

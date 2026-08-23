@@ -1,7 +1,7 @@
 # Contributing
 
 ## Development Rules
-- Keep MVP scope small
+- Keep production increments focused and reviewable
 - Add tests for service logic
 - Never commit secrets
 - Update `docs/STATUS.md` after each meaningful change

@@ -30,7 +30,7 @@ Typed tool contracts live in `backend/app/agents/contracts.py`. Each contract de
 ## Guardrails
 - Read-only market/news tools by default
 - Watchlist write tools require confirmation
-- No trade execution in MVP
+- No trade execution
 - No financial advice language
 - Rate limits
 - Audit logs for agent calls in `agent_tool_audit_logs`

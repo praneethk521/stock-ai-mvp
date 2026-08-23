@@ -61,3 +61,16 @@ jobs:
 
       - name: Build frontend
         run: pnpm run build
+
+  deployment-manifests:
+    name: Deployment manifest validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Render Kubernetes application manifests
+        run: kubectl kustomize infra/k8s/base >/dev/null
+
+      - name: Parse Kubernetes migration job
+        run: ruby -e "require 'yaml'; YAML.load_stream(File.read('infra/k8s/base/migration-job.yaml'))"

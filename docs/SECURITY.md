@@ -1,6 +1,6 @@
 # Security
 
-## MVP Controls
+## Implemented Controls
 - API keys via environment variables only
 - Optional file-mounted secret adapter for production runtimes
 - No secrets committed
@@ -47,6 +47,6 @@
 - Admin status reports only `auth_mode`, never token details or signing material.
 
 ## Explicit Non-Goals
-- No automated trade execution in MVP
+- No automated trade execution
 - No scraping that violates terms of service
 - No secrets in source code

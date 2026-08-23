@@ -31,7 +31,7 @@
 - [x] Add technical indicator calculations from candles
 - [x] Persist recommendations
 
-## M6: Frontend MVP
+## M6: Frontend Foundation
 - [x] Dashboard
 - [x] Large-cap movers
 - [x] Stock recommendation page
@@ -52,5 +52,15 @@
 
 ## M9: Deployment Readiness
 - [x] AWS architecture
-- [ ] Kubernetes manifests
+- [x] Kubernetes manifests
 - [x] Terraform skeleton
+
+## M10: Release Engineering
+- [ ] Publish versioned containers to GHCR
+- [ ] Validate deploy configuration in CI
+- [ ] Add staging deployment workflow
+
+## M11: Operations
+- [ ] Metrics and tracing foundation
+- [ ] Centralized log and alert definitions
+- [ ] Backup and restore runbook

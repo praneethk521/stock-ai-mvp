@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: stock-ai
+  labels:
+    app.kubernetes.io/part-of: stock-ai
+spec:
+  rules:
+    - host: stock-ai.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: stock-ai-backend
+                port:
+                  name: http
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: stock-ai-frontend
+                port:
+                  name: http

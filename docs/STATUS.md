@@ -33,9 +33,10 @@ Production-grade stock intelligence build in progress with FastAPI backend, Next
 - Added runtime secret provider adapter for env and file-mounted production secrets
 - Added optional JWT auth mode for bearer-token enforcement on user-scoped endpoints
 - Added production architecture doc and AWS Terraform skeleton
+- Added portable Kubernetes manifests, production containers, health probes, autoscaling, disruption budgets, and a migration job
 
 ## Next Codex Task
-Add Kubernetes manifests for containerized deployment portability.
+Publish versioned backend and frontend containers to GHCR with GitHub Actions.
 
 ## Working Rules for Codex
 After every meaningful change:
@@ -52,3 +53,4 @@ After every meaningful change:
 - Polygon plan limits may affect some endpoints; frontend now surfaces provider/API failures with request IDs
 - MCP server is documented but not implemented
 - Frontend placeholders remain for deeper admin/provider workflows
+- Kubernetes host, identity provider, managed database/cache, and image values are deployment placeholders until a target environment is selected
