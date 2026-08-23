@@ -4,6 +4,8 @@ Production-minded stock market insights application for market movers, news sent
 
 > Disclaimer: This app is informational only and is not financial advice.
 
+Current release: `v0.2.0`
+
 ## Stack
 - Frontend: Next.js / React / TypeScript
 - Backend: FastAPI / Python

@@ -33,7 +33,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: backend
-          image: ghcr.io/praneethk521/stock-ai-backend:0.1.0
+          image: ghcr.io/praneethk521/stock-ai-backend:0.2.0
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

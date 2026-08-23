@@ -19,7 +19,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits=['120/minute'])
 
 app = FastAPI(
     title=settings.app_name,
-    version='0.1.0',
+    version='0.2.0',
     description='Stock market insights and AI-assisted recommendations. Informational only, not financial advice.',
 )
 app.state.limiter = limiter
