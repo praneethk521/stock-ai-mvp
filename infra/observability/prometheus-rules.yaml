@@ -1,0 +1,94 @@
+groups:
+  - name: stock-ai.application
+    interval: 30s
+    rules:
+      - record: stock_ai:http_request_error_ratio:rate5m
+        expr: |
+          sum(rate(stock_ai_http_requests_total{status_code=~"5.."}[5m]))
+          /
+          clamp_min(sum(rate(stock_ai_http_requests_total[5m])), 0.001)
+
+      - record: stock_ai:http_request_duration_seconds:p95_5m
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(stock_ai_http_request_duration_seconds_bucket[5m]))
+          )
+
+      - alert: StockAiBackendHighErrorRate
+        expr: stock_ai:http_request_error_ratio:rate5m > 0.05
+        for: 10m
+        labels:
+          severity: page
+          service: stock-ai-backend
+          team: stock-ai
+        annotations:
+          summary: Stock AI backend error rate is above 5%
+          description: The five-minute backend HTTP 5xx ratio has remained above 5% for ten minutes.
+          runbook: docs/OPERATIONS.md#backend-high-error-rate
+
+      - alert: StockAiBackendHighLatency
+        expr: |
+          stock_ai:http_request_duration_seconds:p95_5m > 1.5
+          and sum(rate(stock_ai_http_request_duration_seconds_count[5m])) > 0.1
+        for: 10m
+        labels:
+          severity: ticket
+          service: stock-ai-backend
+          team: stock-ai
+        annotations:
+          summary: Stock AI backend p95 latency is above 1.5 seconds
+          description: Backend p95 request latency has remained elevated while serving traffic for ten minutes.
+          runbook: docs/OPERATIONS.md#backend-high-latency
+
+      - alert: StockAiBackendMetricsMissing
+        expr: absent(stock_ai_http_requests_total) == 1
+        for: 15m
+        labels:
+          severity: page
+          service: stock-ai-backend
+          team: stock-ai
+        annotations:
+          summary: Stock AI backend metrics are missing
+          description: Prometheus has not observed the backend request counter for fifteen minutes.
+          runbook: docs/OPERATIONS.md#backend-metrics-missing
+
+  - name: stock-ai.kubernetes
+    interval: 30s
+    rules:
+      - alert: StockAiDeploymentUnavailable
+        expr: |
+          kube_deployment_status_replicas_available{namespace="stock-ai",deployment=~"stock-ai-(backend|frontend)"}
+          <
+          kube_deployment_spec_replicas{namespace="stock-ai",deployment=~"stock-ai-(backend|frontend)"}
+        for: 10m
+        labels:
+          severity: page
+          team: stock-ai
+        annotations:
+          summary: Stock AI deployment has unavailable replicas
+          description: Deployment {{ $labels.deployment }} has been below its desired replica count for ten minutes.
+          runbook: docs/OPERATIONS.md#deployment-unavailable
+
+      - alert: StockAiContainerRestarting
+        expr: |
+          increase(kube_pod_container_status_restarts_total{namespace="stock-ai",pod=~"stock-ai-.*"}[15m]) > 3
+        for: 5m
+        labels:
+          severity: ticket
+          team: stock-ai
+        annotations:
+          summary: Stock AI container is repeatedly restarting
+          description: Container {{ $labels.container }} in pod {{ $labels.pod }} restarted more than three times in fifteen minutes.
+          runbook: docs/OPERATIONS.md#container-restarting
+
+      - alert: StockAiMigrationFailed
+        expr: kube_job_status_failed{namespace="stock-ai",job_name=~"stock-ai-migrate.*"} > 0
+        for: 1m
+        labels:
+          severity: page
+          team: stock-ai
+        annotations:
+          summary: Stock AI database migration failed
+          description: Migration job {{ $labels.job_name }} has failed. Application rollout must remain blocked.
+          runbook: docs/OPERATIONS.md#migration-failed

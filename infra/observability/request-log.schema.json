@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stock-ai.example/schemas/request-log.schema.json",
+  "title": "Stock AI HTTP request completion log",
+  "type": "object",
+  "required": [
+    "event",
+    "level",
+    "timestamp",
+    "method",
+    "route",
+    "status_code",
+    "duration_ms",
+    "request_id"
+  ],
+  "properties": {
+    "event": { "const": "request_completed" },
+    "level": { "enum": ["debug", "info", "warning", "error", "critical"] },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "method": { "type": "string", "minLength": 1 },
+    "route": { "type": "string", "minLength": 1 },
+    "status_code": { "type": "integer", "minimum": 100, "maximum": 599 },
+    "duration_ms": { "type": "number", "minimum": 0 },
+    "request_id": { "type": "string", "minLength": 1 },
+    "trace_id": { "type": ["string", "null"], "pattern": "^[0-9a-f]{32}$" },
+    "span_id": { "type": ["string", "null"], "pattern": "^[0-9a-f]{16}$" }
+  },
+  "additionalProperties": true
+}

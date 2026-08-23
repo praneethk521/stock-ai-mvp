@@ -1,5 +1,7 @@
-import pytest
+import json
+
 import jwt
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -66,6 +68,19 @@ def test_metrics_expose_http_request_counters_and_request_id():
     assert 'route="/api/v1/health/live"' in metrics_res.text
     assert 'route="/api/v1/stocks/{ticker}/recommendation"' in metrics_res.text
     assert 'route="/api/v1/stocks/NVDA/recommendation"' not in metrics_res.text
+
+
+def test_request_completion_log_has_correlation_fields(capsys: pytest.CaptureFixture[str]):
+    client.get('/api/v1/health/live', headers={'x-request-id': 'structured-log-test'})
+
+    events = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+    request_event = next(event for event in events if event.get('request_id') == 'structured-log-test')
+
+    assert request_event['event'] == 'request_completed'
+    assert request_event['route'] == '/api/v1/health/live'
+    assert request_event['status_code'] == 200
+    assert request_event['duration_ms'] >= 0
+    assert {'timestamp', 'level', 'method', 'trace_id', 'span_id'} <= request_event.keys()
 
 
 def test_large_cap_movers_returns_top_ten_sorted_by_absolute_move():

@@ -19,6 +19,8 @@ Build a secure, production-grade stock insights application that combines market
 8. Polygon market/news provider with caching, retries, and technical indicators
 9. Agent tool contracts, execution audit records, and safe explanation fallback
 10. Local Docker Compose and portable Kubernetes deployment paths
+11. Prometheus metrics, structured request logs, optional OTLP traces, and production alert rules
+12. Backup, restore, and incident response runbooks
 
 ## Remaining Product Scope
 - Production identity provider provisioning and frontend sign-in/session flow
@@ -28,7 +30,7 @@ Build a secure, production-grade stock insights application that combines market
 - Model training pipeline
 - MCP server integration
 - Production cloud environment and release automation
-- Operational dashboards, alerting, backup, and recovery validation
+- Operational dashboard deployment and staging recovery validation
 
 ## Functional Requirements
 - Fetch market overview
@@ -55,6 +57,7 @@ Build a secure, production-grade stock insights application that combines market
 - Safe scraping/API compliance
 - Health probes, horizontal scaling, and controlled database migrations
 - Dependency and container vulnerability scanning
+- Request metrics, trace correlation, production alerts, and tested recovery procedures
 
 ## Acceptance Criteria
 - App runs locally with Docker Compose
@@ -64,3 +67,4 @@ Build a secure, production-grade stock insights application that combines market
 - Recommendation includes disclaimer
 - Production containers run non-root processes and use runtime configuration
 - Kubernetes manifests render successfully and separate migrations from API startup
+- Prometheus rules validate in CI and recovery procedures define measurable RPO/RTO targets

@@ -74,3 +74,16 @@ jobs:
 
       - name: Parse Kubernetes migration job
         run: ruby -e "require 'yaml'; YAML.load_stream(File.read('infra/k8s/base/migration-job.yaml'))"
+
+      - name: Validate Prometheus alert rules
+        run: >-
+          docker run --rm --entrypoint /bin/promtool
+          --volume "${PWD}/infra/observability:/rules:ro"
+          prom/prometheus:v3.13.2
+          check rules /rules/prometheus-rules.yaml
+
+      - name: Parse observability definitions
+        run: ruby -rjson -e "JSON.parse(File.read('infra/observability/request-log.schema.json'))"
+
+      - name: Validate operations scripts
+        run: bash -n scripts/backup-local-db.sh scripts/restore-local-db.sh

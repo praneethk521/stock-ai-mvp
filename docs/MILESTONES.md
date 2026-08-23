@@ -62,5 +62,5 @@
 
 ## M11: Operations
 - [x] Metrics and tracing foundation
-- [ ] Centralized log and alert definitions
-- [ ] Backup and restore runbook
+- [x] Centralized log and alert definitions
+- [x] Backup and restore runbook

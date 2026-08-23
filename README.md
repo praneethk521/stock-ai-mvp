@@ -79,6 +79,7 @@ Open http://localhost:3000.
 - Production container targets and portable Kubernetes manifests
 - Versioned multi-platform GHCR publishing with provenance and SBOM attestations
 - Prometheus metrics, structured request logs, request correlation, and optional OpenTelemetry trace export
+- Validated production alert rules plus backup, restore, and incident response runbooks
 - Agent tool contracts and audit log foundation
 - Agent orchestration endpoint for validated tool execution
 - Safe fallback AI explanation service
@@ -91,3 +92,5 @@ Follow `docs/MILESTONES.md` and update `docs/STATUS.md` after each completed tas
 Release process details are in `docs/RELEASING.md`.
 
 Observability configuration and initial production signals are documented in `docs/OBSERVABILITY.md`.
+
+Operational response and database recovery procedures are in `docs/OPERATIONS.md` and `docs/BACKUP_RESTORE.md`.

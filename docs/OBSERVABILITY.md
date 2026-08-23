@@ -37,3 +37,5 @@ The sample ratio must be between `0` and `1`. Parent trace context is extracted 
 ## Initial Production Signals
 
 Alert on sustained server errors, elevated p95 request latency, unavailable ready replicas, repeated container restarts, and failed migration jobs. Thresholds should be calibrated in staging before paging is enabled.
+
+Versioned alert rules are in `infra/observability/prometheus-rules.yaml`; response procedures and the centralized log contract are documented in `docs/OPERATIONS.md`.
